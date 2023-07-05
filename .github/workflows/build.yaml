@@ -6,22 +6,14 @@ permissions:
   contents: read
 
 jobs:
-  build_SOC:
-      runs-on: ubuntu-latest
-      steps:
-          - name: Checkout code
-            uses: actions/checkout@v3
-          - name: Make soc Docker images
-            run: |
-              make build-soc
-  build_DGPU:
+  build_DLStreamer:
       runs-on: ubuntu-latest
       steps:
           - name: Checkout code
             uses: actions/checkout@v3
           - name: Make dgpu Docker images
             run: |
-              make build-dgpu
+              make build-dlstreamer
   build_OVMS_Client:
       runs-on: ubuntu-latest
       steps:

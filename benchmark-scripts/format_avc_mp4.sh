@@ -66,17 +66,13 @@ then
 	exit 0
 fi
 
-FIND_IMAGE_SOC=$(docker images | grep "sco-soc")
-FIND_IMAGE_DGPU=$(docker images | grep "sco-dgpu")
-if [ -z "$FIND_IMAGE_SOC" ] && [ -z "$FIND_IMAGE_DGPU" ]
+FIND_IMAGE_DLSTREAMER=$(docker images | grep "dlstreamer")
+if [ -z "$FIND_IMAGE_DLSTREAMER" ] 
 then
-	echo "ERROR: Can not find docker image sco-soc or sco-dgpu, please build image first!"
+	echo "ERROR: Can not find docker image dlstreamer, please build image first!"
 	exit 1
-elif [ ! -z "$FIND_IMAGE_DGPU" ]
-then
-	TAG=sco-dgpu:2.0
 else
-	TAG=sco-soc:2.0
+	TAG=dlstreamer:2.0
 fi 
 
 if [ ! -f ../sample-media/$1 ] && [ ! -f ../sample-media/$result ]

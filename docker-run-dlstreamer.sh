@@ -23,6 +23,7 @@ echo "CLCACHE: $cl_cache_dir"
 #HAS_FLEX_140=$HAS_FLEX_140, HAS_FLEX_170=$HAS_FLEX_170, HAS_ARC=$HAS_ARC
 
 # TODO: override tag for other images and workloads
+TAG=dlstreamer:2.0
 if [ $HAS_FLEX_140 == 1 ] || [ $HAS_FLEX_170 == 1 ] || [ $HAS_ARC == 1 ] 
 then
 	if [ $OCR_DISABLED == 0 ]
@@ -30,22 +31,10 @@ then
         	echo "OCR device defaulting to dGPU"
         	OCR_DEVICE=GPU
 	fi
-	if [ $PLATFORM == "dgpu" ]
-	then
-		echo "Arc/Flex device driver stack"
-		TAG=sco-dgpu:2.0
-	else
-		TAG=sco-soc:2.0
-		echo "SOC (CPU, iGPU, and Xeon SP) device driver stack"
-	fi
 
 	if [ $HAS_ARC == 1 ]; then
 		PLATFORM="arc"
 	fi
-
-else
-	echo "SOC (CPU, iGPU, and Xeon SP) device driver stack"
-	TAG=sco-soc:2.0
 fi
 
 if [ ! -z "$CONTAINER_IMAGE_OVERRIDE" ]

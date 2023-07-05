@@ -28,11 +28,11 @@ jobs:
       - name: Build an image from Dockerfile
         run: |
           echo "running make build benchmark"
-          make build-soc
+          make build-dlstreamer
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
-          image-ref: 'sco-soc:2.0'
+          image-ref: 'dlstreamer:2.0'
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
