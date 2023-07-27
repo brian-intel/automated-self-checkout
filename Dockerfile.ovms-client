@@ -51,3 +51,7 @@ RUN apt-get update -y || true; DEBIAN_FRONTEND=noninteractive apt-get install -y
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /model_server/client/cmd_client
+
+COPY /configs/opencv-ovms/images /images
+COPY /configs/opencv-ovms/scripts /scripts
+COPY /configs/opencv-ovms/cmd_client/res /model_server/client/cmd_client/res

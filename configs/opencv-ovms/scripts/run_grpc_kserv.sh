@@ -39,8 +39,8 @@ echo "running grpcpython with GRPC_PORT=$GRPC_PORT, DETECTION_MODEL_NAME:$DETECT
 if [ ! -z "$DEBUG" ]
 then
 	# when there is non-empty DEBUG env, the output of app outputs to the console for easily debugging
-	python3 /scripts/grpc_python.py --input_src $inputsrc --grpc_address 127.0.0.1 --grpc_port $GRPC_PORT --model_name  "$DETECTION_MODEL_NAME"
+	python3 /scripts/grpc_python.py --input_src $INPUT_SRC --grpc_address 127.0.0.1 --grpc_port $GRPC_PORT --model_name  "$DETECTION_MODEL_NAME"
 else
-	python3 /scripts/grpc_python.py --input_src $inputsrc --grpc_address 127.0.0.1 --grpc_port $GRPC_PORT --model_name  "$DETECTION_MODEL_NAME" 2>&1  | tee >/tmp/results/r$cid_count.jsonl >(stdbuf -oL sed -n -e 's/^.*fps: //p' | stdbuf -oL cut -d , -f 1 > /tmp/results/pipeline$cid_count.log)
+	python3 /scripts/grpc_python.py --input_src $INPUT_SRC --grpc_address 127.0.0.1 --grpc_port $GRPC_PORT --model_name  "$DETECTION_MODEL_NAME" 2>&1  | tee >/tmp/results/r$cid_count.jsonl >(stdbuf -oL sed -n -e 's/^.*fps: //p' | stdbuf -oL cut -d , -f 1 > /tmp/results/pipeline$cid_count.log)
 fi
 

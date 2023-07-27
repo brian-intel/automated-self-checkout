@@ -90,6 +90,14 @@ while :; do
             echo 'no env file set using default env'
         fi
         ;;
+	--command)
+	    if [ "$2" ]; then
+            COMMAND="$2"
+            shift
+        else
+            echo 'no command set using default command'
+        fi
+        ;;
     -?*)
         error "ERROR: Unknown option $1"
         ;;
@@ -133,4 +141,5 @@ $ENVIRONMENT \
 -e cid_count=$cid_count \
 -e INPUT_SRC="$INPUT_SRC" \
 -e DEVICE=$DEVICE \
-$DOCKER_IMAGE
+$DOCKER_IMAGE \
+$COMMAND

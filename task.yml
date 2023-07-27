@@ -45,7 +45,11 @@ stream_density: need to rework logic to make this run on all pipelines. just nee
 
 
 docker run --network host --user root --ipc=host --name automated-self-checkout2 -e RENDER_MODE= -it -v /home/intel/projects/au
-tomated-self-checkout/results:/tmp/results -v /home/intel/projects/automated-self-checkout/configs/models/2022:/home/pipeline-server/models --env-file configs/dlstreamer/frame
-work-pipelines/yolov5_pipeline/yolov5.env -e cid_count=2 -e INPUT_SRC=rtsp://127.0.0.1:8554/camera_0 -e DEVICE=CPU --entrypoint bash gst:dev
+tomated-self-checkout/results:/tmp/results -v /home/intel/projects/automated-self-checkout/configs/models/2022:/home/pipeline-server/models --env-file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5.env -e cid_count=2 -e INPUT_SRC=rtsp://127.0.0.1:8554/camera_0 -e DEVICE=CPU --entrypoint bash gst:dev
 
 sh $GST_PIPELINE_LAUNCH
+
+
+./docker-run.sh --device CPU --docker_image docker.io/openvino/model_server-gpu:latest --input_src rtsp://127.0.0.1:8554/camera_0 --command '--config_path /home/pipeline-server/models/config.json --port 9000'
+
+./docker-run.sh --device CPU --docker_image ovms-client:latest --input_src rtsp://127.0.0.1:8554/camera_0 --environment PIPELINE_PROFILE=grpc_python --env_file configs/opencv-ovms/scripts/grpc_python.env --command './ovms-client'
