@@ -55,3 +55,5 @@ WORKDIR /model_server/client/cmd_client
 COPY /configs/opencv-ovms/images /images
 COPY /configs/opencv-ovms/scripts /scripts
 COPY /configs/opencv-ovms/cmd_client/res /model_server/client/cmd_client/res
+
+ENTRYPOINT [ "bash", "-c", "$PIPELINE_LAUNCH" ]

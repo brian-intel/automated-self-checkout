@@ -5,22 +5,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-
 #!/bin/bash
-
-# while getopts "v:i:" opt; do
-#     case $opt in
-#         v) VOLUMES+=("-v $OPTARG");;
-#         i) IMAGE=("$OPTARG");;
-#     esac
-# done
-# shift $((OPTIND -1))
-
-# echo "${VOLUMES[@]}"
-# echo $IMAGE
 
 VOLUME="-v `pwd`/results:/tmp/results -v `pwd`/configs/models/2022:/home/pipeline-server/models"
 ENVIRONMENT=""
+DEVICE=CPU
 
 while :; do
     case $1 in
@@ -48,7 +37,7 @@ while :; do
                 error 'ERROR: "--device" requires an argument CPU|GPU|MULTI'
             fi
         else
-                error 'ERROR: "--device" requires an argument CPU|GPU|MULTI'
+                echo 'DEBUG: "--device" no device set using default CPU'
         fi	    
         ;;
     --docker_image)
@@ -64,7 +53,7 @@ while :; do
             INPUT_SRC=$2
             shift
         else
-            error 'ERROR: "--input_src" requires an argument'
+            echo 'DEBUG: "--input_src" not set'
         fi
         ;;
 	--render_mode)

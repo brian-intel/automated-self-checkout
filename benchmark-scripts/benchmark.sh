@@ -19,7 +19,7 @@ show_help() {
            --duration SECONDS (not needed when --stream_density is specified)
            --init_duration SECONDS 
            --platform core|xeon|dgpu.x 
-           --inputsrc RS_SERIAL_NUMBER|CAMERA_RTSP_URL|file:video.mp4|/dev/video0 
+           --input_src RS_SERIAL_NUMBER|CAMERA_RTSP_URL|file:video.mp4|/dev/video0 
            [--classification_disabled] 
            [ --ocr_disabled | --ocr [OCR_INTERVAL OCR_DEVICE] ] 
            [ --barcode_disabled | --barcode [BARCODE_INTERVAL] ]
@@ -39,100 +39,104 @@ OPTIONS_TO_SKIP=0
 PERFORMANCE_MODE=powersave
 DOCKER_RUN_ARGS=""
 
-get_options() {
-    while :; do
-      case $1 in
-        -h | -\? | --help)
-          show_help
-          exit
-        ;;
-        --performance_mode)
-          if [ -z "$2" ]; then
-            break
-          fi
-          
-          if [ "$2" == "powersave" ] || [ "$2" == "performance" ]; then
-            PERFORMANCE_MODE="$2"
-          fi
-          echo "performance_mode: $PERFORMANCE_MODE"
-          OPTIONS_TO_SKIP=$(( OPTIONS_TO_SKIP + 1 ))
-          shift
-        ;;
-        --pipelines)
-          if [ -z "$2" ]; then
-            error 'ERROR: "--pipelines" requires an integer.'        
-          fi
-            
-          PIPELINE_COUNT=$2
-          echo "pipelines: $PIPELINE_COUNT"
-          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-          shift
-          ;;
-        --stream_density)
-          if [ -z "$2" ]; then
-            error 'ERROR: "--stream_density" requires an integer for target fps.'
-          fi
-
-          STREAM_DENSITY_INCREMENTS=""
-          PIPELINE_COUNT=1
-          STREAM_DENSITY_FPS=$2
-          if [[ "$3" =~ ^--.* ]]; then
-            echo "INFO: --stream_density no increment number configured; will be dynamically adjusted internally"
-          else
-            STREAM_DENSITY_INCREMENTS=$3
-            OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+while :; do
+  case $1 in
+   -h | -\? | --help)
+     show_help
+     exit
+     ;;
+   --performance_mode)
+     if [ -z "$2" ]; then
+       break
+     fi
+     
+     if [ "$2" == "powersave" ] || [ "$2" == "performance" ]; then
+       PERFORMANCE_MODE="$2"
+     fi
+     echo "performance_mode: $PERFORMANCE_MODE"
+     OPTIONS_TO_SKIP=$(( OPTIONS_TO_SKIP + 1 ))
+     shift
+     ;;
+   --pipelines)
+     if [ -z "$2" ]; then
+       error 'ERROR: "--pipelines" requires an integer.'        
+     fi
+       
+     PIPELINE_COUNT=$2
+     echo "pipelines: $PIPELINE_COUNT"
+     OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+     shift
+     ;;
+   --stream_density)
+     if [ -z "$2" ]; then
+       error 'ERROR: "--stream_density" requires an integer for target fps.'
+     fi
+     STREAM_DENSITY_INCREMENTS=""
+     PIPELINE_COUNT=1
+     STREAM_DENSITY_FPS=$2
+     if [[ "$3" =~ ^--.* ]]; then
+       echo "INFO: --stream_density no increment number configured; will be dynamically adjusted internally"
+     else
+       STREAM_DENSITY_INCREMENTS=$3
+       OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+       shift
+     fi
+     echo "stream_density: target fps = $STREAM_DENSITY_FPS  increments = $STREAM_DENSITY_INCREMENTS"
+     OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+     shift
+     ;;
+   --logdir)
+     if [ -z "$2" ]; then
+       error 'ERROR: "--logdir" requires an path to a directory.'        
+     fi
+       
+     LOG_DIRECTORY=$2
+     echo "logdir: $LOG_DIRECTORY"
+     OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+     shift
+     ;;
+   --duration)
+     if [ -z "$2" ]; then
+       error 'ERROR: "--duration" requires an integer.'        
+     fi
+       
+     DURATION=$2
+     echo "duration: $DURATION"
+     OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+     shift
+     ;;
+   --init_duration)
+     if [ -z "$2" ]; then
+       error 'ERROR: "--init_duration" requires an integer.'        
+     fi
+     
+     OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+     COMPLETE_INIT_DURATION=$2
+     echo "init_duration: $COMPLETE_INIT_DURATION"
+     shift
+     ;;
+	--input_src)
+	    if [ "$2" ]; then
+            INPUT_SRC=$2
+            DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS --input_src $INPUT_SRC"
             shift
-          fi
-          echo "stream_density: target fps = $STREAM_DENSITY_FPS  increments = $STREAM_DENSITY_INCREMENTS"
-          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-          shift
-          ;;
-        --logdir)
-          if [ -z "$2" ]; then
-            error 'ERROR: "--logdir" requires an path to a directory.'        
-          fi
-            
-          LOG_DIRECTORY=$2
-          echo "logdir: $LOG_DIRECTORY"
-          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-          shift
-          ;;
-        --duration)
-          if [ -z "$2" ]; then
-            error 'ERROR: "--duration" requires an integer.'        
-          fi
-            
-          DURATION=$2
-          echo "duration: $DURATION"
-          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-          shift
-          ;;
-        --init_duration)
-          if [ -z "$2" ]; then
-            error 'ERROR: "--init_duration" requires an integer.'        
-          fi
-          
-          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-          COMPLETE_INIT_DURATION=$2
-          echo "init_duration: $COMPLETE_INIT_DURATION"
-          shift
-          ;;
-        --*)
-          DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS $1"
-          ;;
-        ?*)
-          DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS $1"
-          ;;
-        *)
-          break
-          ;;
-        esac
-
-        OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-        shift
-
-    done
-}
+        else
+            echo 'DEBUG: "--input_src" not set'
+        fi
+        ;;
+   --*)
+     DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS $1"
+     ;;
+   ?*)
+     DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS $1"
+     ;;
+   *)
+     break
+     ;;
+   esac
+   OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+   shift
+done
 
 
 # USAGE: 
@@ -152,15 +156,13 @@ if [ -z $1 ]
 then
         show_help
 fi
-get_options "$@"
 
 # load docker-run params
 shift $OPTIONS_TO_SKIP
 # the following syntax for arguments is meant to be re-splitting for correctly used on all $DOCKER_RUN_ARGS
 # shellcheck disable=SC2068
 set -- $@ $DOCKER_RUN_ARGS
-echo "arguments passing to get-optons.sh" "$@"
-source ../get-options.sh "$@"
+echo "arguments passing to docker-run.sh" "$@"
 
 # set performance mode
 echo "Setting scaling_governor to perf mode"
@@ -191,7 +193,7 @@ for test_run in $( seq 0 $(($run_index - 1)) )
 do
   echo "Entered loop" 
   # Start camera-simulator if rtsp is requested
-  if grep -q "rtsp" <<< "$INPUTSRC"; then
+  if grep -q "rtsp" <<< "$INPUT_SRC"; then
     echo "Starting RTSP stream"
     ./camera-simulator.sh
     sleep 5
@@ -211,7 +213,6 @@ do
 
   # docker-run needs to run in it's directory for the file paths to work
   cd ../
-#  pwd
 
   echo "DEBUG: docker-run.sh" "$@"
 
@@ -246,6 +247,7 @@ do
             exit 1
           fi
       else
+          echo "RUNNING PIPELIES"
           CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER ./docker-run.sh "$@"
       fi
       sleep 1
