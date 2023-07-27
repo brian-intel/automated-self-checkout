@@ -1,19 +1,13 @@
 # Copyright © 2023 Intel Corporation. All rights reserved.
 # SPDX-License-Identifier: Apache-2.0
 
-.PHONY: build-all build-soc build-dgpu run-camera-simulator clean clean-simulator clean-ovms-client clean-model-server clean-ovms clean-all build-grpc-go
+.PHONY: build-all build-gst run-camera-simulator clean clean-simulator clean-ovms-client clean-model-server clean-ovms clean-all build-grpc-go
 
 MKDOCS_IMAGE ?= asc-mkdocs
 
-build-all: build-soc build-dgpu
-
-build-soc:
-	echo "Building for SOC (e.g. TGL/ADL/Xeon SP/etc) HTTPS_PROXY=${HTTPS_PROXY} HTTP_PROXY=${HTTP_PROXY}"
-	docker build --no-cache --build-arg HTTPS_PROXY=${HTTPS_PROXY} --build-arg HTTP_PROXY=${HTTP_PROXY} -t sco-soc:2.0 -f Dockerfile.soc .
-
-build-dgpu:
+build-gst:
 	echo "Building for dgpu Arc/Flex HTTPS_PROXY=${HTTPS_PROXY} HTTP_PROXY=${HTTP_PROXY}"
-	docker build --no-cache --build-arg HTTPS_PROXY=${HTTPS_PROXY} --build-arg HTTP_PROXY=${HTTP_PROXY} -t sco-dgpu:2.0 -f Dockerfile.dgpu .
+	docker build --build-arg HTTPS_PROXY=${HTTPS_PROXY} --build-arg HTTP_PROXY=${HTTP_PROXY} -t gst:dev -f Dockerfile.gst .
 
 run-camera-simulator:
 	./camera-simulator/camera-simulator.sh
