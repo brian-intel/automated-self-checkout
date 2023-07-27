@@ -6,7 +6,7 @@
 
 import sys
 sys.path.append("/model_server/demos/common/python")
-
+import os
 import argparse
 import datetime
 import cv2
@@ -76,7 +76,7 @@ def inference(img_str, model_name, grpc_stub):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Sends requests via KServe gRPC API using images in format supported by OpenCV. It displays performance statistics and optionally the model accuracy')
-    parser.add_argument('--input_src', required=True, default='', help='input source for the inference pipeline')
+    parser.add_argument('--input_src', required=False, default='', help='input source for the inference pipeline')
     parser.add_argument('--grpc_address',required=False, default='localhost',  help='Specify url to grpc service. default:localhost')
     parser.add_argument('--grpc_port',required=False, default=9000, help='Specify port to grpc service. default: 9000')
     parser.add_argument('--model_name', default='instance-segmentation-security-1040', help='Define model name, must be same as is in service. default: resnet',
@@ -84,15 +84,18 @@ if __name__ == '__main__':
     args = vars(parser.parse_args())
 
     # print("Connect to stream")
-    stream = openInputSrc(args['input_src'])
+    input_src = os.environ.get("INPUT_SRC", args['input_src'])
+    stream = openInputSrc(input_src)
 
     # print("Establish OVMS GRPc connection")
-    grpc_stub = setupGRPC(args['grpc_address'],args['grpc_port'])
+    grpc_address = os.environ.get("GRPC_ADDRESS", args['grpc_address'])
+    grpc_port = os.environ.get("GRPC_PORT", args['grpc_port'])
+    grpc_stub = setupGRPC(grpc_address,grpc_port)
 
     # print("Get the model size from OVMS metadata")
-    model_size = getModelSize(args['model_name'])
-    model_name = args['model_name']
-
+    model_name = os.environ.get("MODEL_NAME", args['model_name'])
+    model_size = getModelSize(model_name)
+    
     # print("Begin inference loop")
     while True:
         try:
