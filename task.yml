@@ -44,9 +44,11 @@ stream_density: need to rework logic to make this run on all pipelines. just nee
 # dlstreamer
 ./docker-run.sh --device CPU --docker_image gst:dev --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5.env
 
-    # docker run --network host --user root --ipc=host --name automated-self-checkout2 -e RENDER_MODE= -it -v /home/intel/projects/automated-self-checkout/results:/tmp/results -v /home/intel/projects/automated-self-checkout/configs/models/2022:/home/pipeline-server/models --env-file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5.env -e cid_count=2 -e INPUT_SRC=rtsp://127.0.0.1:8554/camera_0 -e DEVICE=CPU --entrypoint bash gst:dev
+    # docker run --network host --user root --ipc=host --privileged --name automated-self-checkout2 -e RENDER_MODE= -it -v /home/intel/projects/automated-self-checkout/results:/tmp/results -v /home/intel/projects/automated-self-checkout/configs/models/2022:/home/pipeline-server/models --env-file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5.env -e cid_count=2 -e INPUT_SRC=rtsp://127.0.0.1:8554/camera_0 -e DEVICE=CPU --entrypoint bash gst:dev
 
     # sh $GST_PIPELINE_LAUNCH
+gst-launch-1.0 rtsp://127.0.0.1:8554/camera_0 ! rtph264depay ! vaapidecodebin ! gvadetect model-instance-id=odmodel name=detection model=models/yolov5s/1/FP16-INT8/yolov5s.xml model-proc=models/yolov5s/1/yolov5s.json threshold=.5 device=GPU pre-process-backend=vaapi-surface-sharing pre-process-config=VAAPI_FAST_SCALE_LOAD_FACTOR=1 ! gvametaaggregate name=aggregate ! gvametaconvert name=metaconvert add-empty-results=true ! gvametapublish name=destination file-format=2 file-path=/tmp/results/r2.jsonl ! fpsdisplaysink video-sink=fakesink sync=true --verbose 
+
 
 # ovms server
 ./docker-run.sh --docker_image docker.io/openvino/model_server-gpu:latest --command '--config_path /home/pipeline-server/models/config.json --port 9000'
@@ -58,3 +60,13 @@ stream_density: need to rework logic to make this run on all pipelines. just nee
 ./docker-run.sh --device CPU --docker_image ovms-client:latest --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/opencv-ovms/scripts/grpc_python.env
 # ovms client python direct with params (obsolete)
 ./docker-run.sh --device CPU --docker_image ovms-client:latest --input_src rtsp://127.0.0.1:8554/camera_0 --environment PIPELINE_PROFILE=grpc_python --env_file configs/opencv-ovms/scripts/grpc_python.env --command "python3 /scripts/grpc_python.py --input_src rtsp://127.0.0.1:8554/camera_0 --grpc_address 127.0.0.1 --grpc_port 9000 --model_name instance-segmentation-security-1040"
+
+# benchmark
+# dlstreamer yolo cpu
+sudo ./benchmark.sh --pipelines 2 --logdir benchmark-test/dl-yolo-cpu --init_duration 15 --duration 30 --device CPU --docker_image gst:dev --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5.env
+# dlstreamer yolo gpu
+sudo ./benchmark.sh --pipelines 2 --logdir benchmark-test/dl-yolo-gpu --init_duration 15 --duration 30 --device GPU --docker_image gst:dev --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5-gpu.env
+# python rcnn mask
+./docker-run.sh --docker_image docker.io/openvino/model_server-gpu:latest --command '--config_path /home/pipeline-server/models/config.json --port 9000'
+
+sudo ./benchmark.sh --pipelines 2 --logdir benchmark-test/python-rcnn --init_duration 15 --duration 30 --device CPU --docker_image ovms-client:latest --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/opencv-ovms/scripts/grpc_python.env

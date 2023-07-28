@@ -10,7 +10,7 @@ while :; do
             MODEL_NAME=$2
             shift
         else
-            error 'ERROR: "--model_name" requires an argument'
+            echo 'DEBUG: "--model_name" not set using env var by default'
         fi
         ;;
     -?*)

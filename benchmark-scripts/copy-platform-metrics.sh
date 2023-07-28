@@ -7,7 +7,7 @@
 
 LOG_DIRECTORY=$1
 
-if [ -e ../results/r0.jsonl ]
+if [ -e ../results/r0.jsonl ] || [ -e ../results/r1.jsonl ]
 then
   echo "Copying data for collection scripts...`pwd`"
 

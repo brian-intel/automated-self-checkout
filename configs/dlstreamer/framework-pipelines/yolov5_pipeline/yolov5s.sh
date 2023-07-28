@@ -83,6 +83,30 @@
 # 	export GST_VAAPI_DRM_DEVICE="$GST_VAAPI_DRM_DEVICE"
 # fi
 
+# if grep -q "rtsp" <<< "$INPUT_SRC"; then
+# 	# rtsp
+# 	# todo pass depay info
+# 	inputsrc=$INPUT_SRC" ! rtph264depay "
+# 	PRE_PROCESS="pre-process-backend=vaapi-surface-sharing -e pre-process-config=VAAPI_FAST_SCALE_LOAD_FACTOR=1"
+
+
+# elif grep -q "file" <<< "$INPUT_SRC"; then
+# 	# filesrc	
+# 	arrfilesrc=(${INPUT_SRC//:/ })
+# 	# use vids since container maps a volume to this location based on sample-media folder
+# 	# TODO: need to pass demux/codec info
+# 	inputsrc="filesrc location=vids/"${arrfilesrc[1]}" ! qtdemux ! h264parse "
+# 	DECODE="vaapidecodebin"
+# 	PRE_PROCESS="pre-process-backend=vaapi-surface-sharing -e pre-process-config=VAAPI_FAST_SCALE_LOAD_FACTOR=1"
+
+# elif grep -q "video" <<< "$INPUT_SRC"; then
+# 	# v4l2src /dev/video*
+# 	# TODO need to pass stream info
+# 	inputsrc="v4l2src device="$INPUT_SRC
+# 	DECODE="videoconvert ! video/x-raw,format=BGR"
+# 	PRE_PROCESS=""
+# fi
+
 if [ "$RENDER_MODE" == "1" ]; then
 	gst-launch-1.0 $INPUT_SRC ! $DECODE ! gvadetect model-instance-id=odmodel name=detection model=models/yolov5s/1/FP16-INT8/yolov5s.xml model-proc=models/yolov5s/1/yolov5s.json threshold=.5 device=$DEVICE $PRE_PROCESS ! $AGGREGATE gvametaconvert name=metaconvert add-empty-results=true ! gvametapublish name=destination file-format=2 file-path=/tmp/results/r$cid_count.jsonl ! videoconvert ! video/x-raw,format=I420 ! gvawatermark ! videoconvert ! fpsdisplaysink video-sink=ximagesink sync=true --verbose 2>&1 | tee >/tmp/results/gst-launch_$cid_count.log >(stdbuf -oL sed -n -e 's/^.*current: //p' | stdbuf -oL cut -d , -f 1 > /tmp/results/pipeline$cid_count.log)
 else
