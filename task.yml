@@ -66,7 +66,9 @@ gst-launch-1.0 rtsp://127.0.0.1:8554/camera_0 ! rtph264depay ! vaapidecodebin ! 
 sudo ./benchmark.sh --pipelines 2 --logdir benchmark-test/dl-yolo-cpu --init_duration 15 --duration 30 --device CPU --docker_image gst:dev --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5.env
 # dlstreamer yolo gpu
 sudo ./benchmark.sh --pipelines 2 --logdir benchmark-test/dl-yolo-gpu --init_duration 15 --duration 30 --device GPU --docker_image gst:dev --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/dlstreamer/framework-pipelines/yolov5_pipeline/yolov5-gpu.env
-# python rcnn mask
+
+
+# OVMS server first
 ./docker-run.sh --docker_image docker.io/openvino/model_server-gpu:latest --command '--config_path /home/pipeline-server/models/config.json --port 9000'
 
 sudo ./benchmark.sh --pipelines 2 --logdir benchmark-test/python-rcnn --init_duration 15 --duration 30 --device CPU --docker_image ovms-client:latest --input_src rtsp://127.0.0.1:8554/camera_0 --env_file configs/opencv-ovms/scripts/grpc_python.env
