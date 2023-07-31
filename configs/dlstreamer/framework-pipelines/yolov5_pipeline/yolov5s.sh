@@ -83,11 +83,11 @@
 # 	export GST_VAAPI_DRM_DEVICE="$GST_VAAPI_DRM_DEVICE"
 # fi
 
-# if grep -q "rtsp" <<< "$INPUT_SRC"; then
-# 	# rtsp
-# 	# todo pass depay info
-# 	inputsrc=$INPUT_SRC" ! rtph264depay "
-# 	PRE_PROCESS="pre-process-backend=vaapi-surface-sharing -e pre-process-config=VAAPI_FAST_SCALE_LOAD_FACTOR=1"
+if grep -q "rtsp" <<< "$INPUT_SRC"; then
+	# rtsp
+	# todo pass depay info
+	inputsrc=$INPUT_SRC" ! rtph264depay "
+	PRE_PROCESS="pre-process-backend=vaapi-surface-sharing -e pre-process-config=VAAPI_FAST_SCALE_LOAD_FACTOR=1"
 
 
 # elif grep -q "file" <<< "$INPUT_SRC"; then
