@@ -113,6 +113,16 @@ get_options() {
           echo "init_duration: $COMPLETE_INIT_DURATION"
           shift
           ;;
+        --inputsrc)
+          if [ -z "$2" ]; then
+            error 'ERROR: "--pipelines" requires an integer.'        
+          fi
+            
+          INPUTSRC=$2
+          echo "inputsrc: $INPUTSRC"
+          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
+          shift
+          ;;
         --*)
           DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS $1"
           ;;
@@ -152,7 +162,6 @@ shift $OPTIONS_TO_SKIP
 # shellcheck disable=SC2068
 set -- $@ $DOCKER_RUN_ARGS
 echo "arguments passing to get-optons.sh" "$@"
-source ../get-options.sh "$@"
 
 # set performance mode
 echo "Setting scaling_governor to perf mode"
@@ -248,13 +257,13 @@ do
                 break
               fi
             done
-            LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "$@"
+            LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "--inputsrc" $INPUTSRC "$@"
           else
             echo "Error: NUM_GPU is 0, cannot run"
             exit 1
           fi
       else
-          CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "$@"
+          CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "--inputsrc" $INPUTSRC "$@"
       fi
       sleep 1
       #popd
@@ -279,7 +288,7 @@ do
       # Sync sleep in stream density script and platform metrics data collection script
       CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER COMPLETE_INIT_DURATION=$COMPLETE_INIT_DURATION \
       STREAM_DENSITY_FPS=$STREAM_DENSITY_FPS STREAM_DENSITY_INCREMENTS=$STREAM_DENSITY_INCREMENTS \
-      STREAM_DENSITY_MODE=1 DEVICE=$DEVICE ./run.sh "$@"
+      STREAM_DENSITY_MODE=1 DEVICE=$DEVICE ./run.sh "--inputsrc" $INPUTSRC "$@"
       #popd
     fi
   done
