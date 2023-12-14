@@ -34,6 +34,7 @@ show_help() {
 OPTIONS_TO_SKIP=0
 PERFORMANCE_MODE=powersave
 DOCKER_RUN_ARGS=""
+NO_SIMULATOR=0
 
 get_options() {
     while :; do
@@ -113,15 +114,9 @@ get_options() {
           echo "init_duration: $COMPLETE_INIT_DURATION"
           shift
           ;;
-        --inputsrc)
-          if [ -z "$2" ]; then
-            error 'ERROR: "--pipelines" requires an integer.'        
-          fi
-            
-          INPUTSRC=$2
-          echo "inputsrc: $INPUTSRC"
-          OPTIONS_TO_SKIP=$(( $OPTIONS_TO_SKIP + 1 ))
-          shift
+        --no_simulator)          
+          NO_SIMULATOR=1
+          echo "Camera Simualtor Disabled"
           ;;
         --*)
           DOCKER_RUN_ARGS="$DOCKER_RUN_ARGS $1"
@@ -192,7 +187,7 @@ for test_run in $( seq 0 $(($run_index - 1)) )
 do
   echo "Entered loop" 
   # Start camera-simulator if rtsp is requested
-  if grep -q "rtsp" <<< "$INPUTSRC"; then
+  if [ "$NO_SIMULATOR" == 0 ]; then
     echo "Starting RTSP stream"
     ./camera-simulator.sh
     sleep 5
@@ -257,13 +252,13 @@ do
                 break
               fi
             done
-            LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "--inputsrc" $INPUTSRC "$@"
+            LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "$@"
           else
             echo "Error: NUM_GPU is 0, cannot run"
             exit 1
           fi
       else
-          CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "--inputsrc" $INPUTSRC "$@"
+          CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER DEVICE=$DEVICE ./run.sh "$@"
       fi
       sleep 1
       #popd
@@ -288,7 +283,7 @@ do
       # Sync sleep in stream density script and platform metrics data collection script
       CPU_ONLY=$CPU_ONLY LOW_POWER=$LOW_POWER COMPLETE_INIT_DURATION=$COMPLETE_INIT_DURATION \
       STREAM_DENSITY_FPS=$STREAM_DENSITY_FPS STREAM_DENSITY_INCREMENTS=$STREAM_DENSITY_INCREMENTS \
-      STREAM_DENSITY_MODE=1 DEVICE=$DEVICE ./run.sh "--inputsrc" $INPUTSRC "$@"
+      STREAM_DENSITY_MODE=1 DEVICE=$DEVICE ./run.sh "$@"
       #popd
     fi
   done
