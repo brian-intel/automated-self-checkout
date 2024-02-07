@@ -47,8 +47,6 @@
 
 #include "ovms.h"  // NOLINT
 
-#include "barcode.cpp"
-
 using namespace std;
 using namespace cv;
 
@@ -78,8 +76,6 @@ public:
 
     virtual ~MediaPipelineServiceInterface() {}
     virtual const std::string getVideoDecodedPreProcessedPipeline(std::string mediaLocation, VIDEO_TYPE videoType, int video_width, int video_height, bool use_onevpl) = 0;
-    virtual const std::string getBroadcastPipeline() = 0;
-    virtual const std::string getRecordingPipeline() = 0;
 
     const std::string updateVideoDecodedPreProcessedPipeline(int video_width, int video_height, bool use_onevpl)
     {
@@ -100,7 +96,9 @@ int _server_grpc_port;
 int _server_http_port;
 
 std::string _videoStreamPipeline;
+std::string _videoStreamPipeline2;
 MediaPipelineServiceInterface::VIDEO_TYPE _videoType = MediaPipelineServiceInterface::VIDEO_TYPE::H264;
+MediaPipelineServiceInterface::VIDEO_TYPE _videoType2 = MediaPipelineServiceInterface::VIDEO_TYPE::H264;
 int _detectorModel = 0;
 bool _render = 0;
 bool _use_onevpl = 0;
@@ -111,8 +109,6 @@ int _video_input_height = 0; // Get from media _img
 std::vector<cv::VideoCapture> _vidcaps;
 int _window_width = 1280;
 int _window_height = 720;
-float _detection_threshold = 0.5;
-bool _barcode = 1;
 
 class GStreamerMediaPipelineService : public MediaPipelineServiceInterface {
 public:
@@ -123,7 +119,6 @@ public:
         m_videoHeight = video_height;
 
         if (mediaLocation.find("rtsp") != std::string::npos ) {
-        // video/x-raw(memory:VASurface),format=NV12
             switch (videoType)
             {
                 case H264:
@@ -131,24 +126,26 @@ public:
                     return "rtspsrc location=" + mediaLocation + " ! rtph264depay ! h264parse ! " +
                     "msdkh264dec ! msdkvpp scaling-mode=lowpower ! " +
                     "video/x-raw, width=" + std::to_string(video_width) +
-                    ", height=" + std::to_string(video_height) + " ! videoconvert ! video/x-raw,format=BGR ! queue ! appsink drop=1 sync=0";
+                    ", height=" + std::to_string(video_height) + " ! videoconvert ! video/x-raw,format=RGB ! queue ! appsink drop=1 sync=0";
                 else
-                    return "rtspsrc location=" + mediaLocation + " ! rtph264depay ! vaapidecodebin ! video/x-raw(memory:VASurface),format=NV12 ! vaapipostproc" +
-                    " width=" + std::to_string(video_width) +
-                    " height=" + std::to_string(video_height) +
-                    " scale-method=fast ! videoconvert ! video/x-raw,format=BGR ! queue ! appsink drop=1 sync=0";
+                    return "rtspsrc location=" + mediaLocation + " ! rtph264depay ! h264parse ! vah264dec ! video/x-raw(memory:VAMemory),format=NV12 " +
+                    " ! vapostproc ! " +
+                    " video/x-raw, width=" + std::to_string(video_width) +
+                    ", height=" + std::to_string(video_height) +
+                    "  ! videoconvert ! video/x-raw,format=RGB ! queue ! appsink drop=1 sync=0";
                 case H265:
                 if (use_onevpl)
                     return "rtspsrc location=" + mediaLocation + " ! rtph265depay ! h265parse ! " +
                     "msdkh265dec ! " +
                     "msdkvpp scaling-mode=lowpower ! " +
                     "video/x-raw, width=" + std::to_string(video_width) +
-                    ", height=" + std::to_string(video_height) + " ! videoconvert ! video/x-raw,format=BGR ! queue ! appsink drop=1 sync=0";
+                    ", height=" + std::to_string(video_height) + " ! videoconvert ! video/x-raw,format=RGB ! queue ! appsink drop=1 sync=0";
                 else
-                    return "rtspsrc location=" + mediaLocation + " ! rtph265depay ! vaapidecodebin ! vaapipostproc" +
-                    " width=" + std::to_string(video_width) +
-                    " height=" + std::to_string(video_height) +
-                    " scale-method=fast ! videoconvert ! video/x-raw,format=BGR ! appsink sync=0 drop=1";
+                    return "rtspsrc location=" + mediaLocation + " ! rtph265depay ! h265parse ! vah265dec ! video/x-raw(memory:VAMemory),format=NV12 " +
+                    " ! vapostproc ! " +
+                    " video/x-raw, width=" + std::to_string(video_width) +
+                    ", height=" + std::to_string(video_height) +
+                    "  ! videoconvert ! video/x-raw,format=RGB ! queue ! appsink drop=1 sync=0";
                 default:
                     std::cout << "Video type not supported!" << std::endl;
                     return "";
@@ -162,23 +159,23 @@ public:
                     return "filesrc location=" + mediaLocation + " ! qtdemux ! h264parse ! " +
                     "msdkh264dec ! msdkvpp scaling-mode=lowpower ! " +
                     "video/x-raw, width=" + std::to_string(video_width) + ", height=" + std::to_string(video_height) + 
-                    " ! videoconvert ! video/x-raw,format=BGR ! queue ! appsink drop=1 sync=0";
+                    " ! videoconvert ! video/x-raw,format=RGB ! queue ! appsink drop=1 sync=0";
                 else
                     return "filesrc location=" + mediaLocation + " ! qtdemux ! h264parse ! vaapidecodebin ! vaapipostproc" +
                     " width=" + std::to_string(video_width) +
                     " height=" + std::to_string(video_height) +
-                    " scale-method=fast ! videoconvert ! video/x-raw,format=BGR ! appsink drop=1 sync=0";
+                    " scale-method=fast ! videoconvert ! video/x-raw,format=RGB ! appsink drop=1 sync=0";
                 case H265:
                 if (use_onevpl)
                     return "filesrc location=" + mediaLocation + " ! qtdemux ! h265parse ! " +
                     "msdkh265dec ! msdkvpp scaling-mode=lowpower ! " +
                     " video/x-raw, width=" + std::to_string(video_width) + ", height=" + std::to_string(video_height) +
-                    " ! videoconvert ! video/x-raw,format=BGR ! queue ! appsink drop=1 sync=0";
+                    " ! videoconvert ! video/x-raw,format=RGB ! queue ! appsink drop=1 sync=0";
                 else
                     return "filesrc location=" + mediaLocation + " ! qtdemux ! h265parse ! vaapidecodebin ! vaapipostproc" +
                     " width=" + std::to_string(video_width) +
                     " height=" + std::to_string(video_height) +
-                    " scale-method=fast ! videoconvert ! video/x-raw,format=BGR ! appsink drop=1 sync=0";
+                    " scale-method=fast ! videoconvert ! video/x-raw,format=RGB ! appsink drop=1 sync=0";
                 default:
                     std::cout << "Video type not supported!" << std::endl;
                     return "";
@@ -188,14 +185,6 @@ public:
             std::cout << "Unknown media source specified " << mediaLocation << " !!" << std::endl;
             return "";
         }
-    }
-
-    const std::string getBroadcastPipeline() {
-        return "videotestsrc ! videoconvert,format=BGR ! video/x-raw ! appsink drop=1";
-    }
-
-    const std::string getRecordingPipeline() {
-        return "videotestsrc ! videoconvert,format=BGR ! video/x-raw ! appsink drop=1";
     }
 protected:
 
@@ -214,14 +203,6 @@ public:
     virtual const std::vector<int> getModelInputShape() = 0;
     virtual const std::string getClassLabelText(int classIndex) = 0;    
 
-    static inline float sigmoid(float x) {
-        return 1.f / (1.f + std::exp(-x));
-    }
-
-    static inline float linear(float x) {
-        return x;
-    }
-
     double intersectionOverUnion(const DetectedResult& o1, const DetectedResult& o2) {
         double overlappingWidth = std::fmin(o1.x + o1.width, o2.x + o2.width) - std::fmax(o1.x, o2.x);
         double overlappingHeight = std::fmin(o1.y + o1.height, o2.y + o2.height) - std::fmax(o1.y, o2.y);
@@ -232,9 +213,10 @@ public:
 
     virtual void postprocess(const int64_t* output_shape, const void* voutputData, const size_t bytesize, const uint32_t dimCount, std::vector<DetectedResult> &detectedResults)
     {
+        // do nothing
     }
 
-    // Yolov5Ensemble detection/classification postprocess
+    // Yolov8Ensemble detection/classification postprocess
     virtual void postprocess(
         const int64_t* output_shape_conf, const void* voutputData_conf, const size_t bytesize_conf, const uint32_t dimCount_conf, 
         const int64_t* output_shape_boxes, const void* voutputData_boxes, const size_t bytesize_boxes, const uint32_t dimCount_boxes, 
@@ -243,46 +225,6 @@ public:
     {
         // derived to implement
     }
-
-    // IOU postproc filter
-    void postprocess(std::vector<DetectedResult> &detectedResults, std::vector<DetectedResult> &outDetectedResults)
-    {
-
-        if (useAdvancedPostprocessing) {
-            // Advanced postprocessing
-            // Checking IOU threshold conformance
-            // For every i-th object we're finding all objects it intersects with, and comparing confidence
-            // If i-th object has greater confidence than all others, we include it into result
-            for (const auto& obj1 : detectedResults) {
-                bool isGoodResult = true;
-                for (const auto& obj2 : detectedResults) {
-                    if (obj1.classId == obj2.classId && obj1.confidence < obj2.confidence &&
-                        intersectionOverUnion(obj1, obj2) >= boxiou_threshold) {  // if obj1 is the same as obj2, condition
-                                                                                // expression will evaluate to false anyway
-                        isGoodResult = false;
-                        break;
-                    }
-                }
-                if (isGoodResult) {
-                    outDetectedResults.push_back(obj1);
-                }
-            }
-        } else {
-            // Classic postprocessing
-            std::sort(detectedResults.begin(), detectedResults.end(), [](const DetectedResult& x, const DetectedResult& y) {
-                return x.confidence > y.confidence;
-            });
-            for (size_t i = 0; i < detectedResults.size(); ++i) {
-                if (detectedResults[i].confidence == 0)
-                    continue;
-                for (size_t j = i + 1; j < detectedResults.size(); ++j)
-                    if (intersectionOverUnion(detectedResults[i], detectedResults[j]) >= boxiou_threshold)
-                        detectedResults[j].confidence = 0;
-                outDetectedResults.push_back(detectedResults[i]);
-            } //end for
-        } // end if
-    } // end postprocess IOU filter
-
 
 protected:
     float confidence_threshold = .9;
@@ -293,11 +235,12 @@ protected:
 
 };
 
-class Yolov5Ensemble : public ObjectDetectionInterface {
+class Yolov8Ensemble : public ObjectDetectionInterface {
 public:
 
-    Yolov5Ensemble() {
-        confidence_threshold = _detection_threshold;
+    Yolov8Ensemble() {
+        confidence_threshold = .7;
+        // end of pipeline is efficientnet results
         classes = 1000;
         std::vector<int> vmodel_input_shape = getModelInputShape();
         std::copy(vmodel_input_shape.begin(), vmodel_input_shape.end(), model_input_shape);
@@ -320,7 +263,7 @@ public:
     }
 
     const std::vector<int> getModelInputShape() {
-        std::vector<int> shape{1,3,416,416};
+        std::vector<int> shape{1, 3, 416, 416};
         return shape;
     }
     const std::string labels[1000] = {
@@ -1356,7 +1299,7 @@ public:
 
         if (dimCount_conf != 3 || dimCount_boxes != 3 || dimCount_classification != 3)
         {
-            printf("Unknown yolov5 detection and/or efficientnet-b0 model.\n");
+            printf("Unknown yolov8 detection and/or efficientnet-b0 model.\n");
             return;
         }
 
@@ -1378,10 +1321,11 @@ public:
         {
             float confidence = outData_confidence[i];
             
+            //printf("Confidence found: %f ClassID found: %i NetworkW %i NetworkH: %i BoxSize %i \n", confidence, classId, network_w, network_h, boxesSize);
+
             if (confidence > confidence_threshold ) {
                 int classId = argmax(outData_classify_labels, output_shape_classification[2]);
-                // printf("Confidence found: %f ClassID found: %i NetworkW %i NetworkH: %i BoxSize %i \n", confidence, classId, network_w, network_h, boxesSize);
-
+                //printf("numberofTensors %li classId %i\n", output_shape_classification[2], classId);
                 DetectedResult obj;
                 obj.x = std::clamp(
                     static_cast<int>((outData_boxes[i * boxesSize + 0] / ((float)network_w / (float)_video_input_width))),
@@ -1402,6 +1346,20 @@ public:
                 obj.confidence = confidence;
                 obj.classId = (int) classId;
                 strncpy(obj.classText, getClassLabelText(obj.classId).c_str(), sizeof(obj.classText));
+
+                // printf("Actual found: %f %s...%i,%i,%i,%i vs. %i,%i,%i,%i...%ix%i \n", 
+                //     confidence,
+                //     obj.classText,
+                //     obj.x,
+                //     obj.y,
+                //     obj.width,
+                //     obj.height,
+                //     outData_boxes[i * boxesSize + 0],
+                //     outData_boxes[i * boxesSize + 1],
+                //     outData_boxes[i * boxesSize + 2],
+                //     outData_boxes[i * boxesSize + 3],
+                //     _video_input_width,
+                //     _video_input_height);
                 
                 detectedResults.push_back(obj);
             } // end if confidence
@@ -1409,12 +1367,11 @@ public:
     }
 
 private:
+    // yolov8 - ?x3x416x416 NCHW
     const char* MODEL_NAME = "detect_classify";
     const uint64_t MODEL_VERSION = 0;
     const char* INPUT_NAME = "images";
 };
-
-
 
 GStreamerMediaPipelineService* _mediaService = NULL;
 std::string _user_request;
@@ -1429,20 +1386,12 @@ bool stringIsInteger(std::string strInput) {
     return !strInput.empty() && it == strInput.end();
 }
 
-bool stringIsFloat(std::string strInput) {
-    std::istringstream iss(strInput);
-    float f;
-    iss >> std::noskipws >> f; // noskipws considers leading whitespace invalid
-    return iss.eof() && !iss.fail();
-}
-
 bool setActiveModel(int detectionType, ObjectDetectionInterface** objDet)
 {
     if (objDet == NULL)
         return false;
 
-    
-    *objDet = new Yolov5Ensemble();     
+    *objDet = new Yolov8Ensemble();
     return true;
 }
 
@@ -1485,6 +1434,7 @@ void printInferenceResults(std::vector<DetectedResult> &results)
 	}
 }
 
+// TODO: Multiple references state that imshow can't be used in any other thread than main!
 void displayGUIInferenceResults(cv::Mat analytics_frame, std::vector<DetectedResult> &results, int latency, int througput)
 {
     auto ttid = std::this_thread::get_id();
@@ -1513,6 +1463,8 @@ void displayGUIInferenceResults(cv::Mat analytics_frame, std::vector<DetectedRes
             CV_RGB(0, 0, 0), 
             -1);
 
+        std::string putText = obj.classText;
+        putText += " " + std::to_string(obj.confidence);
         cv::putText(analytics_frame, 
             obj.classText, 
             cv::Size((int)x0, (int)y0), 
@@ -1521,29 +1473,16 @@ void displayGUIInferenceResults(cv::Mat analytics_frame, std::vector<DetectedRes
     } // end for
 
     cv::Mat presenter;
-
     {
         std::lock_guard<std::mutex> lock(_drawingMtx);
+        // printf("drawing frame\n");
+        // cv::imwrite("result.jpg", analytics_frame);        
+        cv::cvtColor(analytics_frame, analytics_frame, cv::COLOR_BGR2RGB);
         cv::imshow("OpenVINO Results " + tid, analytics_frame);
         cv::waitKey(1);
     }
 }
 
-void saveInferenceResultsAsVideo(cv::Mat &presenter, std::vector<DetectedResult> &results)
-{
-    for (auto & obj : results) {
-
-        const float scaler_w = 416.0f/_video_input_width;
-        const float scaler_h = 416.0f/_video_input_height;
-
-        cv::rectangle( presenter,
-         cv::Point( (int)(obj.x*scaler_w),(int)(obj.y*scaler_h) ),
-         cv::Point( (int)((obj.x+obj.width) * scaler_w), (int)((obj.y+obj.height)*scaler_h) ),
-         cv::Scalar(255, 0, 0),
-         4, cv::LINE_8 );
-  } // end for
-  cv::imwrite("result.jpg", presenter);
-}
 
 // This function is responsible for generating a GST pipeline that
 // decodes and resizes the video stream based on the desired window size or
@@ -1648,7 +1587,8 @@ bool loadGStreamer(GstElement** pipeline,  GstElement** appsink, std::string med
 }
 
 // OVMS C-API is a global process (singleton design) wide server so can't create many of them
-bool loadOVMS()
+//"./models/config_active.json"
+bool loadOVMS(string model_server_config)
 {
      OVMS_Status* res = NULL;     
 
@@ -1659,14 +1599,7 @@ bool loadOVMS()
      OVMS_ServerSettingsSetRestPort(_serverSettings, _server_http_port);
      OVMS_ServerSettingsSetLogLevel(_serverSettings, OVMS_LOG_ERROR);
 
-     char * ovmsCofigJsonFilePath = std::getenv("OVMS_MODEL_CONFIG_JSON");
-     std::cout << "ovmsCofigJsonFilePath: "<<ovmsCofigJsonFilePath<<std::endl;
-     if (ovmsCofigJsonFilePath == nullptr) {
-        std::cout << "error: could not env OVMS_MODEL_CONFIG_JSON, so default it to config.json"<<std::endl;
-        return false;
-     }
-
-     OVMS_ModelsSettingsSetConfigPath(_modelsSettings, ovmsCofigJsonFilePath);
+     OVMS_ModelsSettingsSetConfigPath(_modelsSettings, model_server_config.c_str());
 
      if (!createModelServer()) {
          std::cout << "Failed to create model server\n" << std::endl;
@@ -1722,9 +1655,11 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
     auto initTime = std::chrono::high_resolution_clock::now();
     unsigned long numberOfFrames = 0;
     long long numberOfSkipFrames = 0;
+    int highest_latency_frame = 0;
+    int lowest_latency_frame = 9999;
+    int avg_latency_frame = 0;
+    int total_latency_frames = 0;
     OVMS_Status* res = NULL;
-
-    BarcodeProcessor barcode;
 
     while (!shutdown_request) {
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -1769,7 +1704,6 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
         GstMapInfo m;
 
         std::vector<DetectedResult> detectedResults;
-        std::vector<DetectedResult> detectedResultsFiltered;
 
         auto metricStartTime = std::chrono::high_resolution_clock::now();
         if (gst_app_sink_is_eos(GST_APP_SINK(appsink))) {
@@ -1781,7 +1715,7 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
         //cout << "Get appsink latency (ms): " << metricLatencyTime << endl;
 
         metricStartTime = std::chrono::high_resolution_clock::now();
-        sample = gst_app_sink_try_pull_sample (GST_APP_SINK(appsink), 50 * GST_SECOND);        
+        sample = gst_app_sink_try_pull_sample (GST_APP_SINK(appsink), 5 * GST_SECOND);        
 
         if (sample == nullptr) {
             std::cout << "ERROR: No sample found" << std::endl;
@@ -1819,7 +1753,7 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
             std::cout << "ERROR: Invalid buffer size" << std::endl;
             return;
         }
-
+        
         cv::Mat analytics_frame;
         cv::Mat floatImage;
         std::vector<int> inputShape;
@@ -1830,20 +1764,19 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
         cv::Mat img(_video_input_height, _video_input_width, CV_8UC3, (void *) m.data);
         metricEndTime = std::chrono::high_resolution_clock::now();
         metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+        //cout << "Copy decoded frame to mat latency (ms): " << metricLatencyTime << endl;
 
-        // When rendering is enabled then the input frame is resized to window size and not the needed model input size
+        // When rendering is enabled then the input frame is resized to window size and not the needed model input size        
         if (_render) {
             
-            if (dynamic_cast<const Yolov5Ensemble*>(objDet) != nullptr)
+            if (dynamic_cast<const Yolov8Ensemble*>(objDet) != nullptr)
 	        {
                 metricStartTime = std::chrono::high_resolution_clock::now();
-                resize(img, analytics_frame, cv::Size(inputShape[2], inputShape[3]), 0, 0, cv::INTER_LINEAR);
+                resize(img, analytics_frame, cv::Size(inputShape[2], inputShape[3]), 0, 0, cv::INTER_AREA /*cv::INTER_LINEAR*/);
                 metricEndTime = std::chrono::high_resolution_clock::now();
                 metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
-                metricStartTime = std::chrono::high_resolution_clock::now();
-		        hwc_to_chw(analytics_frame, analytics_frame);
-                metricEndTime = std::chrono::high_resolution_clock::now();
-                metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+                //cout << "Resize decoded frame latency (ms): " << metricLatencyTime << endl;
+                //cv::imwrite("faceresized.jpg", analytics_frame);                
 	        }
             else
 	        {
@@ -1851,13 +1784,20 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
 		        return;
 	        }
             metricStartTime = std::chrono::high_resolution_clock::now();
-	        analytics_frame.convertTo(floatImage, CV_32F);
+	        analytics_frame.convertTo(analytics_frame, CV_32F);
             metricEndTime = std::chrono::high_resolution_clock::now();
             metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+            //cout << "DataType transform decoded frame latency (ms): " << metricLatencyTime << endl;
+
+            metricStartTime = std::chrono::high_resolution_clock::now();
+            hwc_to_chw(analytics_frame, floatImage);
+            metricEndTime = std::chrono::high_resolution_clock::now();
+            metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+            //cout << "Layout transform decoded frame latency (ms): " << metricLatencyTime << endl;
         }
         else {
-            hwc_to_chw(img, analytics_frame);
-            analytics_frame.convertTo(floatImage, CV_32F);
+            img.convertTo(analytics_frame, CV_32F);
+            hwc_to_chw(analytics_frame, floatImage);
         }
 
         const int DATA_SIZE = floatImage.step[0] * floatImage.rows;
@@ -1867,7 +1807,7 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
 
         // OD Inference
         {            
-            std::lock_guard<std::mutex> lock(_infMtx);
+            //std::lock_guard<std::mutex> lock(_infMtx);
 
             metricStartTime = std::chrono::high_resolution_clock::now();
 
@@ -1895,12 +1835,15 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
 
             metricEndTime = std::chrono::high_resolution_clock::now();
             metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+            //cout << "Inference latency (ms): " << metricLatencyTime << endl;
 
             if (res != nullptr) {
+                
+                //std::cout << "OVMS_Inference failed " << std::endl;
                 uint32_t code = 0;
                 const char* details = 0;
                 OVMS_StatusCode(res, &code);
-                OVMS_StatusDetails(res, &details);                
+                OVMS_StatusDetails(res, &details);
 
                 OVMS_StatusDelete(res);
                 if (request)
@@ -1913,11 +1856,12 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
 
                 metricEndTime = std::chrono::high_resolution_clock::now();
                 metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+                //cout << "Decoded frame release latency (ms): " << metricLatencyTime << endl;
 
-                if (code != 176 /*ovms::StatusCode::PIPELINE_DEMULTIPLEXER_NO_RESULTS*/)
+                if (code != 177 /*OVMS_Status::PIPELINE_DEMULTIPLEXER_NO_RESULTS */)
                 {
                     std::cout << "Error occured during inference. Code:" << code << std::endl;
-                    std::cout << ", details:" << details << std::endl;
+                    //std::cout << "Details: " << details << std::endl;
                     break;
                 }
                 else
@@ -1925,43 +1869,58 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
             }
         } // end lock on inference request to server        
 
-        // Barcode detect and decode
-        if(_barcode == 1){
-            barcode.decode(img);
-        }        
-
         metricStartTime = std::chrono::high_resolution_clock::now();
         OVMS_InferenceResponseOutputCount(response, &outputCount);
         outputId = 0;
 
-        // confidence_levels        
+        // anchor free yolov8 results
         OVMS_InferenceResponseOutput(response, outputId, &outputName1, &datatype1, &shape1, &dimCount1, &voutputData1, &bytesize1, &bufferType1, &deviceId1);
+        // std::cout << "------------>" << tid << " : " << "DeviceID " << deviceId1
+        //  << ", OutputName " << outputName1
+        //  << ", DimCount " << dimCount1
+        //  << ", shape " << shape1[0] << " " << shape1[1] << " " << shape1[2] 
+        //  << ", byteSize " << bytesize1
+        //  << ", OutputCount " << outputCount << std::endl;
 
         // roi_coordinates
         outputId = 1;
         OVMS_InferenceResponseOutput(response, outputId, &outputName2, &datatype2, &shape2, &dimCount2, &voutputData2, &bytesize2, &bufferType2, &deviceId2);
+        // std::cout << "------------>" << tid << " : " << "DeviceID " << deviceId1
+        //  << ", OutputName " << outputName2
+        //  << ", DimCount " << dimCount2
+        //  << ", shape " << shape2[0] << " " << shape2[1] << " " << shape2[2]
+        //  << ", byteSize " << bytesize2
+        //  << ", OutputCount " << outputCount << std::endl;
 
         // classify_output e.g. Classification results
         outputId = 2;
         OVMS_InferenceResponseOutput(response, outputId, &outputName3, &datatype3, &shape3, &dimCount3, &voutputData3, &bytesize3, &bufferType3, &deviceId3);
+        // std::cout << "------------>" << tid << " : " << "DeviceID " << deviceId1
+        //  << ", OutputName " << outputName3
+        //  << ", DimCount " << dimCount3
+        //  << ", shape " << shape3[0] << " " << shape3[1] << " " << shape3[2] 
+        //  << ", byteSize " << bytesize3
+        //  << ", OutputCount " << outputCount << std::endl;
+        
+        // roi_images dims == 5 batch, 1, c, h, w
 
         objDet->postprocess(
             shape1, voutputData1, bytesize1, dimCount1, 
             shape2, voutputData2, bytesize2, dimCount2, 
             shape3, voutputData3, bytesize3, dimCount3, 
             detectedResults);
-        objDet->postprocess(detectedResults, detectedResultsFiltered);
+        //objDet->postprocess(detectedResults, detectedResultsFiltered);
 
         metricEndTime = std::chrono::high_resolution_clock::now();
         metricLatencyTime = ((std::chrono::duration_cast<std::chrono::milliseconds>(metricEndTime-metricStartTime)).count());
+        //cout << "Post-processing latency (ms): " << metricLatencyTime << endl;
 
         numberOfSkipFrames++;
         float fps = 0;
-        if (numberOfSkipFrames <= 120) // allow warm up for latency/fps measurements
+        int skip_frames = 120;
+        if (numberOfSkipFrames <= skip_frames) // allow warm up for latency/fps measurements
         {
             initTime = std::chrono::high_resolution_clock::now();
-            numberOfFrames = 0;
-
             //printf("Too early...Skipping frames..\n");
         }
         else
@@ -1976,12 +1935,7 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
             }
     
             if (_render)
-                displayGUIInferenceResults(img, detectedResultsFiltered, latencyTime, fps);
-
-            static int highest_latency_frame = 0;
-            static int lowest_latency_frame = 9999;
-            static int avg_latency_frame = 0;
-            static int total_latency_frames = 0;
+                displayGUIInferenceResults(img, detectedResults, latencyTime, fps);
 
             int frame_latency = chrono::duration_cast<chrono::milliseconds>(endTime - startTime).count();
             
@@ -1991,8 +1945,6 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
                 lowest_latency_frame = frame_latency;
             
             total_latency_frames += frame_latency;
-            
-
 
             if (numberOfFrames % 30 == 0) {
                 avg_latency_frame = total_latency_frames / 30;
@@ -2001,10 +1953,10 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
                 struct tm  tstruct;
                 char       bCurrTime[80];
                 tstruct = *localtime(&currTime);
-                // http://en.cppreference.com/w/cpp/chrono/c/strftime
+                
                 strftime(bCurrTime, sizeof(bCurrTime), "%Y-%m-%d.%X", &tstruct);
 
-                cout << detectedResultsFiltered.size() << " object(s) detected at " << bCurrTime  << endl;
+                cout << detectedResults.size() << " object(s) detected at " << bCurrTime  << endl;
                 cout << "Avg. Pipeline Throughput FPS: " << ((isinf(fps)) ? "..." : std::to_string(fps)) << endl;
                 cout << "Avg. Pipeline Latency (ms): " << avg_latency_frame << endl;
                 cout << "Max. Pipeline Latency (ms): " << highest_latency_frame << endl;
@@ -2013,7 +1965,6 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
                 lowest_latency_frame = 9999;
                 total_latency_frames = 0;
             }
-
         }
 
         if (request) {
@@ -2028,6 +1979,9 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
 
         gst_buffer_unmap(buffer, &m);
         gst_sample_unref(sample);
+
+        // DEBUG: TODO
+        //shutdown_request = 1;
 
         if (shutdown_request > 0)
             break;
@@ -2055,78 +2009,127 @@ void run_stream(std::string mediaPath, GstElement* pipeline, GstElement* appsink
 
 void print_usage(const char* programName) {
     std::cout << "Usage: ./" << programName << " \n\n"
-        << "mediaLocation is an rtsp://127.0.0.1:8554/camera_0 url or a path to an *.mp4 file\n"
-        << "use_onevpl is 0 (libva - default) or 1 for onevpl\n"
-        << "render is 1 to launch render window or 0 (default) for headless\n"
-        << "video_type is 0 for AVC or 1 for HEVC\n"
-        << "window_width is display window width\n"
-        << "window_height is display window height\n"
-        << "detection_threshold is confidence threshold value in floating point that needs to be between 0.0 to 1.0\n";
+        << "\tmedia 1 location: an rtsp://127.0.0.1:8554/camera_0 url or a path to a *.mp4 file\n"
+        << "\tmedia 2 location: an rtsp://127.0.0.1:8554/camera_0 url, a path to a *.mp4 file, or leave blank\n"
+        << "\tuse_onevpl: 0 (libva) or 1 for oneVPL\n"
+        << "\trender mode: 0 for headless or 1 to launch a render window \n"
+        << "\trender portrait mode: 0 for headless or 1 to launch a render window \n"
+        << "\tmodel server config file name: config_yolov8_ensemble_cpu.json, config_yolov8_ensemble_gpu.json, or config_yolov8_ensemble_cpu_gpu.json \n"
+        << "\tvideo_type for media 1: 0 for HEVC or 1 for AVC\n"
+        << "\tvideo_type for media 2: 0 for HEVC or 1 for AVC\n";
 }
 
-int get_running_servers() {
-    const char * val = std::getenv("cid_count");
-    std::cout << "val: "<<val<<std::endl;
-    if ( val == nullptr ) {
-        std::cout << "Got null for env variable cid_count, so default it to 0. "<<std::endl;
-         return 0;
-     }
-     else {
-         return std::stoi(val);
-     }
+//$INPUTSRC $INPUTSRC2 $USE_ONEVPL $RENDER_MODE $RENDER_PORTRAIT_MODE $CONFIG_NAME $CODEC_TYPE $CODEC_TYPE2
+bool parse_cl_args(int argc, char** argv, string &inputsrc, string &inputsrc2, bool &usevpl, bool &renderMode, 
+                   bool &renderPortraitMode, string &configName, 
+                   MediaPipelineServiceInterface::VIDEO_TYPE &codecType1, 
+                   MediaPipelineServiceInterface::VIDEO_TYPE &codecType2)
+{    
+    int cli = 1;
+    
+
+    if (argc < 2)
+        return false;
+
+    inputsrc = argv[cli++];
+    if (inputsrc.empty())
+        return false;
+    
+    if (argc >= 9)
+        inputsrc2 = argv[cli++];
+    
+    string useVPL = argv[cli++];
+    if (useVPL.empty())
+        return false;
+    usevpl = std::stoi(useVPL.c_str());
+    
+    string render = argv[cli++];
+    if (render.empty())
+        return false;
+    renderMode = std::stoi(render.c_str());
+
+    string renderPortrait = argv[cli++];
+    if (renderPortrait.empty())
+        return false;
+     renderPortraitMode = std::stoi(renderPortrait.c_str());
+    configName = argv[cli++];
+    if (configName.empty())
+        return false;
+    string videoType = argv[cli++];
+    if (videoType.empty())
+        return false;
+    codecType1 = (MediaPipelineServiceInterface::VIDEO_TYPE) std::stoi(videoType);
+    if (inputsrc2.empty())
+        return true;
+    videoType = argv[cli++];
+    if (videoType.empty())
+        return false;
+    codecType2 = (MediaPipelineServiceInterface::VIDEO_TYPE) std::stoi(videoType);
+    
+    return true;
+}
+
+int get_running_model_servers() {
+    char buffer[128];
+
+    string cmd = "echo $cid_count";
+    std::string result = "";
+    FILE* pipe = popen(cmd.c_str(), "r");
+    
+    if (!pipe) 
+    {
+        printf("Failed to get cid_count\n");
+        throw std::runtime_error("popen() failed!");
+    }
+    try 
+    {
+        while (fgets(buffer, sizeof buffer, pipe) != NULL) 
+        {
+            result += buffer;
+        }
+    } 
+    catch (...) 
+    {
+        printf("Failed to get cid_count\n");
+        pclose(pipe);
+        throw;
+    }
+    pclose(pipe);
+
+    try
+    {
+        printf("Failed to get cid_count\n");
+        return std::stoi(result.c_str());
+    }
+    catch (...)
+    {
+        throw;
+    }
 }
 
 int main(int argc, char** argv) {
-    std::cout << std::setprecision(2) << std::fixed;
+    
+    string model_server_config;
+    if (!parse_cl_args(argc, argv, _videoStreamPipeline, _videoStreamPipeline2, _use_onevpl, _render, _renderPortrait, model_server_config, _videoType, _videoType2))
+    {
+        print_usage(argv[0]);
+        return 1;
+    }
+
+    // Swap width/height to enable portrait mode
+    if (_renderPortrait) {
+        int tmp = _window_width;
+        _window_width = _window_height;
+        _window_height = tmp;
+    }
 
     // Use GST pipelines for media HWA decode and pre-procesing
     _mediaService = new GStreamerMediaPipelineService();
 
     // get valid server port numbers
-    int running_servers = get_running_servers();
+    int running_servers = get_running_model_servers();
     _server_grpc_port = 9178 + running_servers;
     _server_http_port = 11338 + running_servers;
-
-    _videoStreamPipeline = "people-detection.mp4";
-
-    if (argc < 9) {
-        print_usage(argv[0]);
-        return 1;
-    }
-
-    if (!stringIsInteger(argv[2]) || !stringIsInteger(argv[3]) || !stringIsInteger(argv[4])
-        || !stringIsInteger(argv[5]) || !stringIsInteger(argv[6]) || !stringIsInteger(argv[7]) || !stringIsFloat(argv[8])) {
-        print_usage(argv[0]);
-        return 1;
-    } else {
-        _videoStreamPipeline = argv[1];
-        std::cout << "_videoStreamPipeline: " << _videoStreamPipeline << std::endl;
-        _use_onevpl = std::stoi(argv[2]);
-        std::cout << "_use_onevpl: " << _use_onevpl << std::endl;
-        _render = std::stoi(argv[3]);
-        std::cout << "_render: " << _render << std::endl;
-        _renderPortrait = std::stoi(argv[4]);
-        std::cout << "_renderPortrait: " << _renderPortrait << std::endl;
-        _videoType = (MediaPipelineServiceInterface::VIDEO_TYPE) std::stoi(argv[5]);
-        std::cout << "argv[5]: " << argv[5] << std::endl;
-        _window_width = std::stoi(argv[6]);
-        _window_height = std::stoi(argv[7]);
-        std::cout << "_window_width: " << _window_width << std::endl;
-        std::cout << "_window_height: " << _window_height << std::endl;
-        _detection_threshold=std::stof(argv[8]);
-        if (_detection_threshold > 1.0 || _detection_threshold < 0.0) {
-            std::cout << "detection_threshold: " << _detection_threshold << ", is confidence threshold value in floating point that needs to be between 0.0 to 1.0.\n" << endl;
-            return 1;
-        }
-         _barcode = std::stoi(argv[9]);
-        std::cout << "_barcode: " << _barcode << std::endl;
-
-        if (_renderPortrait) {
-            int tmp = _window_width;
-            _window_width = _window_height;
-            _window_height = tmp;
-        }
-    }
 
     gst_init(NULL, NULL);
 
@@ -2139,12 +2142,20 @@ int main(int argc, char** argv) {
     getMAPipeline(_videoStreamPipeline, &pipeline,  &appsink, &objDet);
     running_streams.emplace_back(run_stream, _videoStreamPipeline, pipeline, appsink, objDet);
 
-    if (!loadOVMS())
+    GstElement *pipeline2;
+    GstElement *appsink2;
+    ObjectDetectionInterface* objDet2;
+    if (!_videoStreamPipeline2.empty())
+    {
+        getMAPipeline(_videoStreamPipeline2, &pipeline2,  &appsink2, &objDet2);
+        running_streams.emplace_back(run_stream, _videoStreamPipeline2, pipeline2, appsink2, objDet2);
+    }
+
+    if (!loadOVMS(model_server_config))
         return -1;
 
     _allDecodersInitd = true;
     _cvAllDecodersInitd.notify_all();;
-
     
    for(auto& running_stream : running_streams)
        running_stream.join();

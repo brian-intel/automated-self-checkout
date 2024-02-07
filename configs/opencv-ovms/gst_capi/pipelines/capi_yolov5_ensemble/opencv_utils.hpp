@@ -1,5 +1,5 @@
 //*****************************************************************************
-// Copyright 2023 Intel Corporation
+// Copyright 2021 Intel Corporation
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -76,6 +76,7 @@ const cv::Mat nchw_to_mat(const CustomNodeTensor* input) {
 bool crop_rotate_resize(cv::Mat originalImage, cv::Mat& targetImage, cv::Rect roi, float angle, float originalTextWidth, float originalTextHeight, cv::Size targetShape) {
     try {
         // Limit roi to be in range of original image.
+        // Face detection detections may go beyond original image.
         roi.x = roi.x < 0 ? 0 : roi.x;
         roi.y = roi.y < 0 ? 0 : roi.y;
         roi.width = roi.width + roi.x > originalImage.size().width ? originalImage.size().width - roi.x : roi.width;
