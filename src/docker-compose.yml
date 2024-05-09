@@ -23,7 +23,7 @@ services:
     command: "
         -nostdin
         -re -stream_loop -1
-        -i /home/pipeline-server/sample-media/coca-cola-4465029-1920-15-bench.mp4
+        -i /home/pipeline-server/sample-media/00-kite-1280-15-bench.mp4
         -c copy
         -f rtsp
         -rtsp_transport
@@ -33,7 +33,7 @@ services:
     depends_on:
       - camera-simulator
     volumes:
-      - ${RETAIL_USE_CASE_ROOT:-..}/performance-tools/sample-media:/home/pipeline-server/sample-media
+      - ${RETAIL_USE_CASE_ROOT:-..}:/home/pipeline-server/sample-media
 
   OvmsClientGst:
     image: dlstreamer:dev
