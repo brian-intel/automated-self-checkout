@@ -41,6 +41,7 @@ services:
     network_mode: "host"
     entrypoint: /script/entrypoint.sh --pipeline_script_choice ${PIPELINE_SCRIPT:-yolov5s.sh}
     privileged: true
+    ipc: host
     env_file:
       - ./res/gst.env
       - ${DEVICE_ENV:-res/yolov5-cpu.env}
