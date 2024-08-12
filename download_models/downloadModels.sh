@@ -158,8 +158,8 @@ downloadYolov8FP32INT8() {
 }
 
 ### Run custom downloader section below:
-# downloadYolov5sFP16INT8
-# downloadEfficientnetb0
-# downloadHorizontalText
-# downloadTextRecognition
+downloadYolov5sFP16INT8
+downloadEfficientnetb0
+downloadHorizontalText
+downloadTextRecognition
 downloadYolov8FP32INT8
