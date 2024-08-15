@@ -43,9 +43,11 @@ services:
       - OCR_RECLASSIFY_INTERVAL=5
       - BARCODE_RECLASSIFY_INTERVAL=5
       - RENDER_MODE=0
-      - PUBLISH=${PUBLISH:-address=mqtt-broker:1883 topic=inferenceEvent method=mqtt}
+      - PUBLISH=address=mqtt-broker:1883 topic=inferenceEvent method=mqtt
     depends_on:
       - camera-simulator0
+    volumes:
+      - ${RESULTS_DIR:-../results}:/tmp/results
 
   mqtt-broker:
     command:
@@ -56,12 +58,7 @@ services:
     hostname: mqtt-broker
     image: eclipse-mosquitto:2.0.18
     ports:
-      - mode: ingress
-        host_ip: 127.0.0.1
-        target: 1883
-        published: "1883"
-        protocol: tcp
-    read_only: true
+      - 1883:1883
     restart: always
     security_opt:
       - no-new-privileges:true
