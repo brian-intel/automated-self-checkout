@@ -1,0 +1,9 @@
+Config
+barcode
+barcoded
+edgesoftware
+effnet
+efficientnet_b0
+yolov
+yolov5
+
