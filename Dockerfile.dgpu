@@ -8,6 +8,5 @@ FROM intel/dlstreamer:2024.1.1-dev-ubuntu22
 
 USER root 
 
-RUN if [ -n "$HTTP_PROXY" ] ; then  echo "Acquire::http::Proxy \"$HTTP_PROXY\";" >  /etc/apt/apt.conf; fi
 COPY ./requirements.txt /requirements.txt
-RUN pip3 install --upgrade pip --no-cache-dir -r /requirements.txt
+RUN pip3 install --proxy $HTTP_PROXY --proxy $HTTPS_PROXY --upgrade pip --no-cache-dir -r /requirements.txt
