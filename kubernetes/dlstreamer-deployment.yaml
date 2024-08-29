@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose -f docker-compose.yml convert -o kubernetes/
+    kompose.version: 1.26.0 (40646f47)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: dlstreamer
+  name: dlstreamer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: dlstreamer
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose -f docker-compose.yml convert -o kubernetes/
+        kompose.version: 1.26.0 (40646f47)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: dlstreamer
+    spec:
+      containers:
+        - command:
+            - /script/entrypoint.sh
+            - --pipeline_script_choice
+            - yolov5s.sh
+          env:
+            - name: BARCODE_RECLASSIFY_INTERVAL
+              value: "5"
+            - name: BATCH_SIZE
+              value: "0"
+            - name: CLASSIFICATION_OPTIONS
+              value: 'reclassify-interval=1 '
+            - name: DETECTION_OPTIONS
+              value: gpu-throughput-streams=4 nireq=4 batch-size=1
+            - name: GST_DEBUG
+              value: "0"
+            - name: INPUTSRC
+              value: rtsp://camera-simulator:8554/camera_0
+            - name: LOG_LEVEL
+              value: ERROR
+            - name: OCR_RECLASSIFY_INTERVAL
+              value: "5"
+            - name: PUBLISH
+              value: address=mqtt-broker:1883 topic=inferenceEvent method=mqtt
+            - name: RENDER_MODE
+              value: "0"
+          image: dlstreamer:deploy
+          name: dlstreamer
+          resources: {}
+          volumeMounts:
+            - mountPath: /tmp/results
+              name: dlstreamer-claim0
+      restartPolicy: Always
+      volumes:
+        - name: dlstreamer-claim0
+          persistentVolumeClaim:
+            claimName: dlstreamer-claim0
+status: {}
