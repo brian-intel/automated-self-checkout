@@ -28,7 +28,7 @@ services:
       - camera-simulator
 
   dlstreamer:
-    image: dlstreamer:deploy
+    image: bmcginn/cv-workshop:dls
     deploy:
       mode: replicated
       replicas: 1

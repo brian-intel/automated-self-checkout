@@ -50,7 +50,7 @@ spec:
               value: address=mqtt-broker:1883 topic=inferenceEvent method=mqtt
             - name: RENDER_MODE
               value: "0"
-          image: dlstreamer:deploy
+          image: bmcginn/cv-workshop:dls
           name: dlstreamer
           resources: {}
           volumeMounts:

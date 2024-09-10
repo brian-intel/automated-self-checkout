@@ -2,18 +2,18 @@ apiVersion: v1
 entries:
   object-detection-service-low-code:
   - apiVersion: v1
-    created: "2024-08-15T17:08:11.614282407-07:00"
+    created: "2024-09-10T15:30:13.010907942-07:00"
     description: DLStreamer based object detection pipeline
-    digest: 21f785ac7ad94329b85f11f27a02323f25df8d3110002be90077c3974ac02954
+    digest: 5fbda9d59888189bd9aaaec8d6c740f3e05d7d131c41b71c8c5cb24df968a1fa
     keywords:
     - dlstreamer
     - object-detection
     name: object-detection-service-low-code
     urls:
-    - https://github.com/intel-retail/automated-self-checkout/object-detection-service-low-code-3.1.0.tgz
+    - object-detection-service-low-code-3.1.0.tgz
     version: 3.1.0
   - apiVersion: v1
-    created: "2024-08-15T17:08:11.614857898-07:00"
+    created: "2024-09-10T15:30:13.011266709-07:00"
     description: DLStreamer based object detection pipeline
     digest: 78cad372f1dca2d2d9fed927cb2242c3fd127bd5d57dbc3f39d9670df9f104a6
     keywords:
@@ -21,28 +21,6 @@ entries:
     - object-detection
     name: object-detection-service-low-code
     urls:
-    - https://github.com/intel-retail/automated-self-checkout/.deploy/object-detection-service-low-code-3.1.0.tgz
+    - .deploy/object-detection-service-low-code-3.1.0.tgz
     version: 3.1.0
-  - apiVersion: v1
-    created: "2024-08-15T17:08:11.6139666-07:00"
-    description: DLStreamer based object detection pipeline
-    digest: 0cfae06f36507972c14d1cbc1a5c21b72aa00f17fd82f1d85aedf7baac388fe4
-    keywords:
-    - dlstreamer
-    - object-detection
-    name: object-detection-service-low-code
-    urls:
-    - https://github.com/intel-retail/automated-self-checkout/object-detection-service-low-code-3.0.0.tgz
-    version: 3.0.0
-  - apiVersion: v1
-    created: "2024-08-15T17:08:11.614559071-07:00"
-    description: DLStreamer based object detection pipeline
-    digest: 0cfae06f36507972c14d1cbc1a5c21b72aa00f17fd82f1d85aedf7baac388fe4
-    keywords:
-    - dlstreamer
-    - object-detection
-    name: object-detection-service-low-code
-    urls:
-    - https://github.com/intel-retail/automated-self-checkout/.deploy/object-detection-service-low-code-3.0.0.tgz
-    version: 3.0.0
-generated: "2024-08-15T17:08:11.613575214-07:00"
+generated: "2024-09-10T15:30:12.747371861-07:00"
