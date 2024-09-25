@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   annotations:
-    kompose.cmd: kompose -f docker-compose.yml convert -o kubernetes/
+    kompose.cmd: kompose -f docker-compose.yml convert -o kubernetes -c
     kompose.version: 1.26.0 (40646f47)
   creationTimestamp: null
   labels:
@@ -18,7 +18,7 @@ spec:
   template:
     metadata:
       annotations:
-        kompose.cmd: kompose -f docker-compose.yml convert -o kubernetes/
+        kompose.cmd: kompose -f docker-compose.yml convert -o kubernetes -c
         kompose.version: 1.26.0 (40646f47)
       creationTimestamp: null
       labels:
@@ -55,10 +55,10 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: /tmp/results
-              name: dlstreamer-claim0
+              name: dlstreamer-storage
       restartPolicy: Always
       volumes:
-        - name: dlstreamer-claim0
+        - name: dlstreamer-storage
           persistentVolumeClaim:
-            claimName: dlstreamer-claim0
+            claimName: dlstreamer-claim
 status: {}
