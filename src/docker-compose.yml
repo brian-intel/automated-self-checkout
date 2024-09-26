@@ -54,3 +54,5 @@ services:
       - ~/.cl-cache:/home/pipeline-server/.cl-cache
       - ./res/:/home/pipeline-server/envs
       - ${RETAIL_USE_CASE_ROOT:-..}/models:/home/pipeline-server/models
+    devices:
+      - /dev/video4:/dev/video4

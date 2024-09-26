@@ -19,7 +19,7 @@ stop-minikube-demo:
 	minikube stop
 
 helm-convert:
-	kompose -f docker-compose.yml convert -o kubernetes -c
+	kompose -f docker-compose.yml convert -o object-detection-service-low-code-3.1.0 -c
 
 install-helm:
 	helm install -f kubernetes/Chart.yaml dls kubernetes

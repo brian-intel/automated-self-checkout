@@ -52,6 +52,7 @@ kompose -f docker-compose.yml convert -o kubernetes/
 helm repo add dls https://intel-retail.github.io/automated-self-checkout/
 helm search repo dls
 helm install dls dls/dls
+helm package object-detection-service-low-code-3.1.0
 kubectl exec --stdin --tty <container-id> -- /bin/bash
 
 # Run multinode cluster
