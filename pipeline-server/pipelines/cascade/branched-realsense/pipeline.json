@@ -1,0 +1,127 @@
+{
+    "type": "GStreamer",
+    "template": [
+                    " {auto_source}",
+                    " ! image/jpeg, width=4160, height=3120, framerate=15/1, format=MJPG",
+                    " ! decodebin force-sw-decoders=true",
+                    " ! videoscale method=nearest-neighbour ! video/x-raw,width=3840,height=2160",
+                    " ! gvadetect name=detection threshold=.65 model={models[ssdlite_mobilenet_v2][1][FP16-INT8][network]} device=CPU",
+                    " ! gvatrack tracking-type=zero-term",
+                    " ! gvapython class=ObjectRemovalByLabel module=/home/pipeline-server/extensions/object_removal_by_label.py name=classification-filter",
+                    " ! tee name=branch",
+                    " ! queue",
+                    " ! gvadetect model={models[horizontal-text-detection-0001][1][FP16-INT8][network]} name=text_detection device=CPU threshold=.65 inference-region=roi-list cpu-throughput-streams=4 nireq=128 ie-config=CPU_THREADS_NUM=24 ",
+                    " ! gvainference model={models[text-recognition-0012][1][FP16-INT8][network]} inference-region=roi-list name=text_recognition object-class=text cpu-throughput-streams=4 nireq=128 ie-config=CPU_THREADS_NUM=24 ",
+                    " ! gvapython class=OCR module=/home/pipeline-server/extensions/OCR_post_processing.py name=ocr_postprocess",
+                    " ! gvametaaggregate name=aggregate",
+                    " ! gvametaconvert name=metaconvert",
+                    " ! gvametapublish name=destination ! appsink",
+                    " branch. ! queue ",
+                    " ! gvaclassify model={models[efficientnet-b0][1][FP16-INT8][network]} reclassify-interval=2 device=CPU inference-region=roi-list name=classify",
+                    " ! aggregate.",
+                    " branch. ! queue ",
+                    " ! gvapython name=barcode class=BarcodeDetection module=/home/pipeline-server/extensions/barcode.py",
+                    " ! aggregate."
+    ],
+    "description": "Cascade Branched for Realsense 13MP MJPEG",
+    "parameters": {
+                    "type": "object",
+                    "properties": {
+                                    "detection": {
+                                                    "type": "object",
+                                                    "element": {
+                                                                    "name": "detection",
+                                                                    "format": "element-properties"
+                                                    }
+                                    },
+                                    "text-detection": {
+                                                    "type": "object",
+                                                    "element": {
+                                                                    "name": "text_detection",
+                                                                    "format": "element-properties"
+                                                    }
+                                    },
+                                    "text-recognition": {
+                                                    "type": "object",
+                                                    "element": {
+                                                                    "name": "text_recognition",
+                                                                    "format": "element-properties"
+                                                    }
+                                    },
+                                    "barcode-properties": {
+                                                    "element": {
+                                                                    "name": "barcode",
+                                                                    "property": "kwarg",
+                                                                    "format": "json"
+                                                    },
+                                                    "type": "object",
+                                                    "properties": {
+                                                                    "disable": {
+                                                                                    "type": "boolean"
+                                                                    }
+                                                    }
+                                    },
+                                    "OCR-properties": {
+                                                    "element": {
+                                                                    "name": "ocr_postprocess",
+                                                                    "property": "kwarg",
+                                                                    "format": "json"
+                                                    },
+                                                    "type": "object",
+                                                    "properties": {
+                                                                    "threshold": {
+                                                                                    "type": "number"
+                                                                    }
+                                                    },
+                                                    "default": {
+                                                                    "threshold": 0.5
+                                                    }
+                                    },
+                                    "classification": {
+                                                    "type": "object",
+                                                    "element": {
+                                                                    "name": "classify",
+                                                                    "format": "element-properties"
+                                                    }
+                                    },
+                                    "classification-filter": {
+                                                    "element": {
+                                                                    "name": "classification_filter",
+                                                                    "format": "json",
+                                                                    "property": "kwarg"
+                                                    },
+                                                    "type": "object",
+                                                    "properties": {
+                                                                    "object_filter": {
+                                                                                    "type": "array"
+                                                                    }
+                                                    }
+                                    },
+                                    "classification-filter-objects": {
+                                                    "element": {
+                                                                    "name": "classification_filter_objects",
+                                                                    "format": "json",
+                                                                    "property": "kwarg"
+                                                    },
+                                                    "type": "object",
+                                                    "properties": {
+                                                                    "object_filter": {
+                                                                                    "type": "array"
+                                                                    },
+                                                                    "min-objects": {
+                                                                                    "type": "integer"
+                                                                    },
+                                                                    "max-objects": {
+                                                                                    "type": "integer"
+                                                                    },
+                                                                    "enable": {
+                                                                                    "type": "boolean"
+                                                                    }
+                                                    },
+                                                    "default": {
+                                                                    "enable": false
+                                                    }
+                                    }
+                    }
+    }
+}

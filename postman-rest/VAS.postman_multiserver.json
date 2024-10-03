@@ -1,0 +1,357 @@
+{
+	"info": {
+		"_postman_id": "0c95cdff-b5a6-4193-ae30-ff918549c0e1",
+		"name": "VAS Copy",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Camera 1 (Delayed Start - 20 seconds)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"  // wait 15 seconds or so before beginning execution\r",
+							"  var date = new Date();\r",
+							"  var curDate = null;\r",
+							"  do {\r",
+							"    curDate = new Date();\r",
+							"  }\r",
+							"  while (curDate - date < 20000);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"source\": {\r\n        \"uri\": \"{{camera1}}\",\r\n        \"type\": \"uri\"\r\n    },\r\n    \"destination\": {\r\n        \"metadata\": {\r\n            \"type\": \"file\",\r\n            \"path\": \"/tmp/results/results_1.json\"\r\n        },\r\n        \"frame\": {\r\n            \"type\": \"rtsp\",\r\n   \"sync-with-source\": false,\r\n           \"path\": \"camera_1\"\r\n        }\r\n    },\r\n    \"parameters\": {\r\n        \"classification\": {\r\n            \"device\": \"CPU\"\r\n        },\r\n        \"detection\": {\r\n            \"device\": \"CPU\"\r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/pipelines/{{pipelineName}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"pipelines",
+						"{{pipelineName}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Camera 2",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"source\": {\r\n        \"uri\": \"{{camera2}}\",\r\n        \"type\": \"uri\"\r\n    },\r\n    \"destination\": {\r\n        \"metadata\": {\r\n            \"type\": \"file\",\r\n            \"path\": \"/tmp/results/results_2.json\"\r\n        },\r\n        \"frame\": {\r\n            \"type\": \"rtsp\",\r\n  \"sync-with-source\": false,\r\n             \"path\": \"camera_2\"\r\n        }\r\n    },\r\n    \"parameters\": {\r\n        \"classification\": {\r\n            \"device\": \"CPU\"\r\n        },\r\n        \"detection\": {\r\n            \"device\": \"CPU\"\r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host2}}/pipelines/{{pipelineName}}",
+					"host": [
+						"{{host2}}"
+					],
+					"path": [
+						"pipelines",
+						"{{pipelineName}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Camera 3",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"source\": {\r\n        \"uri\": \"{{camera3}}\",\r\n        \"type\": \"uri\"\r\n    },\r\n    \"destination\": {\r\n        \"metadata\": {\r\n            \"type\": \"file\",\r\n            \"path\": \"/tmp/results/results_3.json\"\r\n        },\r\n        \"frame\": {\r\n            \"type\": \"rtsp\",\r\n   \"sync-with-source\": false,\r\n            \"path\": \"camera_3\"\r\n        }\r\n    },\r\n    \"parameters\": {\r\n        \"classification\": {\r\n            \"device\": \"CPU\"\r\n        },\r\n        \"detection\": {\r\n            \"device\": \"CPU\"\r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host3}}/pipelines/{{pipelineName}}",
+					"host": [
+						"{{host3}}"
+					],
+					"path": [
+						"pipelines",
+						"{{pipelineName}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Camera 4",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"source\": {\r\n        \"uri\": \"{{camera4}}\",\r\n        \"type\": \"uri\"\r\n    },\r\n    \"destination\": {\r\n        \"metadata\": {\r\n            \"type\": \"file\",\r\n            \"path\": \"/tmp/results/results_4.json\"\r\n        },\r\n        \"frame\": {\r\n            \"type\": \"rtsp\",\r\n   \"sync-with-source\": false,\r\n            \"path\": \"camera_4\"\r\n        }\r\n    },\r\n    \"parameters\": {\r\n        \"classification\": {\r\n            \"device\": \"CPU\"\r\n        },\r\n        \"detection\": {\r\n            \"device\": \"CPU\"\r\n        }\r\n    }\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host4}}/pipelines/{{pipelineName}}",
+					"host": [
+						"{{host4}}"
+					],
+					"path": [
+						"pipelines",
+						"{{pipelineName}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Pipelines",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/pipelines",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"pipelines"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Pipeline Statuses (Every 5 Seconds)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"  // wait 5 seconds or so before beginning execution\r",
+							"  var date = new Date();\r",
+							"  var curDate = null;\r",
+							"  do {\r",
+							"    curDate = new Date();\r",
+							"  }\r",
+							"  while (curDate - date < 5000);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"postman.setNextRequest('Get Pipeline Statuses (Every 5 Seconds) Server 2')"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/pipelines/status",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"pipelines",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Pipeline Statuses (Every 5 Seconds) Server 2",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"postman.setNextRequest('Get Pipeline Statuses (Every 5 Seconds) Server 3')"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host2}}/pipelines/status",
+					"host": [
+						"{{host2}}"
+					],
+					"path": [
+						"pipelines",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Pipeline Statuses (Every 5 Seconds) Server 3",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"postman.setNextRequest('Get Pipeline Statuses (Every 5 Seconds) Server 4')"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host3}}/pipelines/status",
+					"host": [
+						"{{host3}}"
+					],
+					"path": [
+						"pipelines",
+						"status"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Pipeline Statuses (Every 5 Seconds) Server 4",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"postman.setNextRequest('Get Pipeline Statuses (Every 5 Seconds)')"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host4}}/pipelines/status",
+					"host": [
+						"{{host4}}"
+					],
+					"path": [
+						"pipelines",
+						"status"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

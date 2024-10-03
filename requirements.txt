@@ -1,0 +1,2 @@
+pyzbar
+zxing-cpp
