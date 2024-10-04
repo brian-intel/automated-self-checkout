@@ -77,7 +77,7 @@ services:
 
   evamclient:
     container_name: edge-video-analytics-microservice
-    image: intel/edge_video_analytics_microservice:2.0.0
+    image: bmcginn/cv-workshop:2.1
     ports:
       - ${EVAM_PORT}:${EVAM_PORT}
     environment:
@@ -134,7 +134,7 @@ services:
       checkout-network: {}
 
   multimodal-data-visualization-streaming:
-    image: intel/multimodal-data-visualization-streaming:5.0.0
+    image: bmcginn/cv-workshop:mdvs
     container_name: multimodal-data-visualization-streaming
     ipc: "none"
     tmpfs:
@@ -175,7 +175,7 @@ services:
     network_mode: host
 
   multimodal-data-visualization:
-    image: intel/multimodal-data-visualization:5.0.0
+    image: bmcginn/cv-workshop:mdv
     container_name: multimodal-data-visualization
     ipc: "none"
     security_opt:
@@ -213,7 +213,7 @@ services:
     network_mode: host
   
   webrtc-signaling-server:
-    image: intel/simple-signaling-server:4.0.3
+    image: bmcginn/cv-workshop:sss
     container_name: webrtc-signaling-server
     read_only: true
     environment:
