@@ -93,10 +93,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ${RETAIL_USE_CASE_ROOT:-..}/src/extensions:/home/pipeline-server/gvapython
       - ${RETAIL_USE_CASE_ROOT:-../..}/models:/home/pipeline-server/models
-      - ${RETAIL_USE_CASE_ROOT:-..}/src/pipeline-server/asc:/home/pipeline-server/pipelines
-      - "${RETAIL_USE_CASE_ROOT:-..}/src/pipeline-server/config.json:/home/pipeline-server/config.json"
+      - "${RETAIL_USE_CASE_ROOT:-..}/src/config.json:/home/pipeline-server/config.json"
     network_mode: host
 
   pipeline-init:
@@ -193,7 +191,7 @@ services:
         max_attempts: 5          
     volumes:
        - "vol_temp_grafana:/tmp"
-       - ${RETAIL_USE_CASE_ROOT:-..}/src/pipeline-server/grafana:/app/eva
+       - ${RETAIL_USE_CASE_ROOT:-..}/src/grafana:/app/eva
     environment:
       HOST_IP: ${HOST_IP}
       MODE: "EVA"
