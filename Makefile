@@ -16,7 +16,7 @@ download-models:
 	./download_models/downloadModels.sh
 
 download-sample-videos:
-	cd performance-tools/benchmark-scripts && ./download_sample_videos.sh
+	cd media && ./download_sample_videos.sh
 
 clean-models:
 	@find ./models/ -mindepth 1 -maxdepth 1 -type d -exec sudo rm -r {} \;
