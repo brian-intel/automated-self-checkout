@@ -9,7 +9,7 @@ download-models:
 	./download_models/downloadModels.sh
 
 download-sample-videos:
-	cd media && ./download_sample_videos.sh
+	cd sample-media && ./download_sample_videos.sh
 
 clean-models:
 	@find ./models/ -mindepth 1 -maxdepth 1 -type d -exec sudo rm -r {} \;

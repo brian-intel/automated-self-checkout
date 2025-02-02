@@ -59,13 +59,6 @@ getProcessFile() {
     wget "$2"/"$3".json -O "$5"/"$1"/"$4".json
 }
 
-# $1 model name
-# $2 download label URL
-# $3 label file name
-getLabelFile() {
-    wget "$2/$3" -P "$4"/"$1"
-}
-
 # custom yolov5s model downloading for this particular precision FP16INT8
 downloadYolov5sFP16INT8() {
     yolov5s="yolov5s"
@@ -103,41 +96,6 @@ downloadEfficientnetb0() {
     fi
 }
 
-downloadHorizontalText() {
-    horizontalText0002="horizontal-text-detection-0002"
-    modelType="text_detection"
-    horizontaljsonfilepath="$modelType/$horizontalText0002/$horizontalText0002.json"
-
-    if [ ! -f $horizontaljsonfilepath ]; then
-        getModelFiles $horizontalText0002 $pipelineZooModel$horizontalText0002 $modelPrecisionFP16INT8 $modelType
-        getProcessFile $horizontalText0002 $pipelineZooModel$horizontalText0002 $horizontalText0002 $horizontalText0002 $modelType
-        mv "$modelType/$horizontalText0002/$modelPrecisionFP16INT8" "$modelType/$horizontalText0002/$modelPrecisionFP32"
-    else
-        echo "horizontalText0002 $modelPrecisionFP16INT8 model already exists, skip downloading..."
-    fi
-}
-
-downloadTextRecognition() {
-    textRec0012Mod="text-recognition-0012-mod"
-    textRec0012="text-recognition-0012"
-    modelType="text_recognition"
-    textRec0012Modjsonfilepath="$modelType/$textRec0012/$textRec0012.json"
-
-    if [ ! -f $textRec0012Modjsonfilepath ]; then
-        getModelFiles $textRec0012Mod $pipelineZooModel$textRec0012Mod $modelPrecisionFP16INT8 $modelType
-        getProcessFile $textRec0012Mod $pipelineZooModel$textRec0012Mod $textRec0012Mod $textRec0012Mod $modelType
-        mv "$modelType/$textRec0012Mod" "$modelType/$textRec0012"
-        mv "$modelType/$textRec0012/$modelPrecisionFP16INT8/$textRec0012Mod.xml" "$modelType/$textRec0012/$modelPrecisionFP16INT8/$textRec0012.xml"
-        mv "$modelType/$textRec0012/$modelPrecisionFP16INT8/$textRec0012Mod.bin" "$modelType/$textRec0012/$modelPrecisionFP16INT8/$textRec0012.bin"
-        mv "$modelType/$textRec0012/$modelPrecisionFP16INT8" "$modelType/$textRec0012/$modelPrecisionFP32"
-        mv "$modelType/$textRec0012/$textRec0012Mod.json" "$modelType/$textRec0012/$textRec0012.json"
-    else
-        echo "textRec0012 $modelPrecisionFP16INT8 model already exists, skip downloading..."
-    fi
-}
-
 ### Run custom downloader section below:
 downloadYolov5sFP16INT8
 downloadEfficientnetb0
-downloadHorizontalText
-downloadTextRecognition
