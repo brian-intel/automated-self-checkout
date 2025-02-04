@@ -14,11 +14,11 @@ download-sample-videos:
 clean-models:
 	@find ./models/ -mindepth 1 -maxdepth 1 -type d -exec sudo rm -r {} \;
 
-run-pipeline-server: | download-models download-sample-videos
-	RETAIL_USE_CASE_ROOT=$(RETAIL_USE_CASE_ROOT) docker compose -f src/docker-compose.pipeline-server.yml up -d
+run: | download-models download-sample-videos
+	RETAIL_USE_CASE_ROOT=$(RETAIL_USE_CASE_ROOT) docker compose -f src/docker-compose.yml up -d
 
-down-pipeline-server:
-	docker compose -f src/docker-compose.pipeline-server.yml down
+down:
+	docker compose -f src/docker-compose.yml down
 
 helm-package:
 	helm package helm/ -u -d .deploy
