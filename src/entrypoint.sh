@@ -66,7 +66,7 @@ while :; do
 
 done
 
-if [ "$PIPELINE_SCRIPT" != "yolov5s.sh" ] && [ "$PIPELINE_SCRIPT" != "yolov5s_effnetb0.sh" ] && [ "$PIPELINE_SCRIPT" != "yolov5s_full.sh" ]
+if [ "$PIPELINE_SCRIPT" != "yolov5s.sh" ] && [ "$PIPELINE_SCRIPT" != "yolov5s_effnetb0.sh" ] && [ "$PIPELINE_SCRIPT" != "yolov5s_full.sh" ] && [ "$PIPELINE_SCRIPT" != "yolov8s.sh" ]
 then
 	echo "Error on your input: $PIPELINE_SCRIPT"
 	show_help
@@ -129,6 +129,8 @@ touch /tmp/results/gst-launch_"$cid"_gst.log
 chown 1000:1000 /tmp/results/gst-launch_"$cid"_gst.log
 touch /tmp/results/pipeline"$cid"_gst.log
 chown 1000:1000 /tmp/results/pipeline"$cid"_gst.log
+
+sleep 3
 
 cl_cache_dir="/home/pipeline-server/.cl-cache" \
 DISPLAY="$DISPLAY" \
