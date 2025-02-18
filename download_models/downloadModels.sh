@@ -136,8 +136,30 @@ downloadTextRecognition() {
     fi
 }
 
+downloadYolov8FP32INT8() {
+    yolov8ModelDirName="yolov8s"
+    yolov8ModelFile="$yolov8ModelDirName/$modelPrecisionFP32INT8/1/yolov8n-int8-416.bin"
+    modelType="object_detection"
+
+    if [ -f "$yolov8ModelFile" ]; then
+        echo "yolov8 $modelPrecisionFP32INT8 model already exists in $yolov8ModelFile, skip downloading..."
+    else
+        echo "download yolov8 $modelPrecisionFP32INT8 model..."
+        # YOLOV8_MODEL_DOWNLOADER=$(docker images --format "{{.Repository}}" | grep "openvino_yolov8-download")
+        # if [ -z "$YOLOV8_MODEL_DOWNLOADER" ]
+        # then
+            docker build --target bin -t openvino_yolov8-download:1.1 -f "$MODEL_EXEC_PATH"/Dockerfile.yolov8-download --output="$modelDir/$modelType/$yolov8ModelDirName" . 
+        # fi
+        # docker run --rm -v "$modelDir/$modelType/$yolov8ModelDirName/$modelPrecisionFP32INT8"/:/home/dlstreamer/intel/dl_streamer/models/public/yolov8s openvino_yolov8-download:1.1
+        # # make the yolov8ModelDirName owned by local user instead of root
+        # sudo chown -R "${USER:=$(/usr/bin/id -run)}:$USER" "$modelDir"/"$modelType"
+        # echo "yolov8 model downloaded in $yolov8ModelFile"
+    fi
+}
+
 ### Run custom downloader section below:
 downloadYolov5sFP16INT8
 downloadEfficientnetb0
 downloadHorizontalText
 downloadTextRecognition
+downloadYolov8FP32INT8
