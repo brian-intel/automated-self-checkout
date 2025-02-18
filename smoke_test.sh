@@ -1,12 +1,3 @@
-#!/bin/bash
-#
-# Copyright (C) 2024 Intel Corporation.
-#
-# SPDX-License-Identifier: Apache-2.0
-#
-
-
-RESULT_DIR=./results
 
 # a quick spot test script to smoke testing some of pipeline profiles
 #
