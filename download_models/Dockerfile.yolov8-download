@@ -1,0 +1,41 @@
+#
+# Copyright (C) 2023-2024 Intel Corporation.
+#
+#
+# -----------------------------------------------------------
+
+# https://hub.docker.com/r/openvino/model_server
+ARG BASE_IMAGE=openvino/ubuntu22_dev:2024.1.0
+FROM $BASE_IMAGE as builder
+
+USER root
+WORKDIR /
+ENV DEBIAN_FRONTEND=noninteractive
+# SHELL ["/bin/bash", "-c"]
+
+# Install build tools and media UMD
+ARG BUILD_DEPENDENCIES="git wget"
+RUN apt -y update && \
+    apt install -y ${BUILD_DEPENDENCIES} && \
+    rm -rf /var/lib/apt/lists/* && rm -rf /tmp/*
+
+RUN git clone https://github.com/dlstreamer/dlstreamer.git
+WORKDIR /dlstreamer/samples
+RUN pip install ultralytics
+ENV MODELS_PATH=/home/dlstreamer/intel/dl_streamer/models
+RUN ./download_public_models.sh yolov8s
+RUN wget https://raw.githubusercontent.com/dlstreamer/dlstreamer/master/samples/gstreamer/model_proc/public/yolo-v8.json -P ${MODELS_PATH}/public/yolov8s
+
+WORKDIR ${MODELS_PATH}
+# ENTRYPOINT ["/bin/bash", "-c", "cp yolov8n-int8-416.* /savedir"]
+
+# Example builds:
+# Force refresh
+#    sudo docker build -t openvino_yolov8-download:1.1 --build-arg REFRESH_OPTION=--refresh -f Dockerfile.yolov8-download .
+
+# Greenfield:
+#    sudo docker build -t openvino_yolov8-download:1.1 -f Dockerfile.yolov8-download .
+
+FROM scratch as bin
+ENV MODELS_PATH=/home/dlstreamer/intel/dl_streamer/models
+COPY --from=builder ${MODELS_PATH}/public/yolov8s/ /
